@@ -12,6 +12,7 @@ var Schema = mongoose.Schema;
 var TaskSchema = new Schema({      
     account:    { type: Schema.Types.ObjectId, ref: 'Account' },
     task:       { type: String },
+    task_type:  { type: String },
     status:     { type:String, enums:['Pending','Done']},
     date_created:   { type: Date },
     last_modified:  { type: Date }
