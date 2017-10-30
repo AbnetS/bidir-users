@@ -7,12 +7,19 @@ var mongoose  = require('mongoose');
 var moment    = require('moment');
 var paginator = require('mongoose-paginate');
 
+var enums     = require ('../lib/enums');
+
 var Schema = mongoose.Schema;
 
 var PermissionSchema = new Schema({       
     name:           { type: String, required: true },
-    description:    { type: String },  
-    endpoints:      [{ type: Schema.Types.ObjectId, ref:'Permission'}],  
+    description:    { type: String }, 
+    module:         { 
+      type: String, 
+      enums:[enums.MODULES.MFI_SETUP,enums.MODULES.USER_MANAGEMENT]}, //this list will be incorporating all modules in the system
+    endpoints:      [{
+      url: { type: String }
+     }],  
     date_created:   { type: Date },
     last_modified:  { type: Date }
 });

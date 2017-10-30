@@ -1,4 +1,4 @@
-// MFI Model Definiton.
+// SuperAdmin Model Definiton.
 
 /**
  * Load Module Dependencies.
@@ -9,22 +9,22 @@ var paginator = require('mongoose-paginate');
 
 var Schema = mongoose.Schema;
 
-var MFISchema = new Schema({
-    name:           { type: String, required:true },
-    location:       { type: String, required:true},
-    logo:           { type: String, default:"", required:true},
-    establishment_year:       { type: String, default:""},
-    website_link:             { type: String, default:""},
-    email:          { type: String, default:"" },
-    phone:          { type: String, default:""},
-    contact_person: {type: String, default: ""},
-    branches:        [{type: Schema.Types.ObjectId, ref: "Branch"}],
+var SuperAdminSchema = new Schema({  
+    account:        { type: Schema.Types.ObjectId, ref:'Account'},  
+    realm:          { type: String, default:"superadmin"},  
+    title:          { type: String },
+    first_name:     { type: String, required: true },
+    middle_name:    { type: String },    
+    last_name:      { type: String },   
+    email:          { type: String },
+    phone:          { type: String },    
+    status:         { type: String, enums:['active', 'inactive'], default:'inactive'},
     date_created:   { type: Date },
     last_modified:  { type: Date }
 });
 
 // add mongoose-troop middleware to support pagination
-MFISchema.plugin(paginator);
+SuperAdminSchema.plugin(paginator);
 
 /**
  * Pre save middleware.
@@ -33,7 +33,7 @@ MFISchema.plugin(paginator);
  *          attributes prior to save.
  *        - Hash tokens password.
  */
-MFISchema.pre('save', function preSaveMiddleware(next) {
+SuperAdminSchema.pre('save', function preSaveMiddleware(next) {
   var instance = this;
 
   // set date modifications
@@ -47,12 +47,12 @@ MFISchema.pre('save', function preSaveMiddleware(next) {
 });
 
 /**
- * Filter MFI Attributes to expose
+ * Filter SuperAdmin Attributes to expose
  */
-MFISchema.statics.whitelist = {
-  '__v' : 0 
+SuperAdminSchema.statics.whitelist = {
+  __v: 0
 };
 
 
-// Expose MFI model
-module.exports = mongoose.model('MFI', MFISchema);
+// Expose SuperAdmin model
+module.exports = mongoose.model('SuperAdmin', SuperAdminSchema);

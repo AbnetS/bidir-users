@@ -10,10 +10,14 @@ const paginator = require ('mongoose-paginator');
 var Schema = mongoose.Schema;
 
 var AccountSchema = Schema ({
-    user:       { type: Schema.Types.ObjectId, ref: 'User', required: true },
-    username:   { type: string, required: true },
-    password:   { type: string, required: true },
-    roles:       [{ type: Schema.Types.ObjectId, ref: 'Role'}],
+    user:           { type: Schema.Types.ObjectId, ref: 'User', required: true },
+    username:       { type: string, required: true },
+    password:       { type: string, required: true },
+    // roles:          [{
+    //   branch: { type: Schema.Types.ObjectId, ref: 'Branch' },
+    //   branch_roles:  [{ type: Schema.Types.ObjectId, ref: 'Role' }]
+    // }],
+    roles:          [{ type: Schema.Types.ObjectId, ref: 'Role' }],
     date_created:   { type: Date },
     last_modified:  { type: Date }
 })

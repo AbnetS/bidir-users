@@ -4,8 +4,10 @@
 var debug = require('debug')('api:routes');
 
 var pkg            = require('../package.json');
+var config         = require('../config');
 var MFIRouter      = require('./MFI');
 var branchRouter   = require('./branch');
+
 
 module.exports = function initRoutes(app) {
   debug('loading routes');

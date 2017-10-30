@@ -1,4 +1,4 @@
-// Role Model Definiton.
+// Task Model Definiton.
 
 /**
  * Load Module Dependencies.
@@ -9,19 +9,16 @@ var paginator = require('mongoose-paginate');
 
 var Schema = mongoose.Schema;
 
-var RoleSchema = new Schema({       
-    name:           { type: String, required: true },
-    description:    { type: String },
-    details:        [{
-      branch:         { type: Schema.Types.ObjectId, ref: 'Branch' },
-      permissions:    [{ type: Schema.Types.ObjectId, ref:'Permission'}],  
-    }], 
+var TaskSchema = new Schema({      
+    account:    { type: Schema.Types.ObjectId, ref: 'Account' },
+    task:       { type: String },
+    status:     { type:String, enums:['Pending','Done']},
     date_created:   { type: Date },
     last_modified:  { type: Date }
 });
 
 // add mongoose-troop middleware to support pagination
-RoleSchema.plugin(paginator);
+TaskSchema.plugin(paginator);
 
 /**
  * Pre save middleware.
@@ -30,7 +27,7 @@ RoleSchema.plugin(paginator);
  *          attributes prior to save.
  *        - Hash tokens password.
  */
-RoleSchema.pre('save', function preSaveMiddleware(next) {
+TaskSchema.pre('save', function preSaveMiddleware(next) {
   var instance = this;
 
   // set date modifications
@@ -44,12 +41,12 @@ RoleSchema.pre('save', function preSaveMiddleware(next) {
 });
 
 /**
- * Filter Role Attributes to expose
+ * Filter Task Attributes to expose
  */
-RoleSchema.statics.whitelist = {
+TaskSchema.statics.whitelist = {
   __v: 0
 };
 
 
-// Expose Role model
-module.exports = mongoose.model('Role', RoleSchema);
+// Expose Task model
+module.exports = mongoose.model('Task', TaskSchema);

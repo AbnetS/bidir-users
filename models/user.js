@@ -9,8 +9,7 @@ var paginator = require('mongoose-paginate');
 
 var Schema = mongoose.Schema;
 
-var UserSchema = new Schema({
-    branch:         { type: Schema.Types.ObjectId, ref:'Branch'},
+var UserSchema = new Schema({  
     account:        { type: Schema.Types.ObjectId, ref:'Account'},
     title:          { type: String },
     first_name:     { type: String, required: true },
