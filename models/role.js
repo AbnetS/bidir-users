@@ -12,6 +12,10 @@ var Schema = mongoose.Schema;
 var RoleSchema = new Schema({       
     name:           { type: String, required: true },
     description:    { type: String },
+    details:        [{
+      branch:         { type: Schema.Types.ObjectId, ref: 'Branch' },
+      permissions:    [{ type: Schema.Types.ObjectId, ref:'Permission'}],  
+    }], 
     date_created:   { type: Date },
     last_modified:  { type: Date }
 });
@@ -43,11 +47,7 @@ RoleSchema.pre('save', function preSaveMiddleware(next) {
  * Filter Role Attributes to expose
  */
 RoleSchema.statics.whitelist = {
-  name: 1,
-  description: 1,
-  _id: 1,
-  date_created: 1,
-  last_modified: 1
+  __v: 0
 };
 
 

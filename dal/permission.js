@@ -1,40 +1,40 @@
 'use strict';
-// Access Layer for Branch Data.
+// Access Layer for Permission Data.
 
 /**
  * Load Module Dependencies.
  */
-const debug   = require('debug')('api:dal-branch');
+const debug   = require('debug')('api:dal-permission');
 const moment  = require('moment');
 const _       = require('lodash');
 const co      = require('co');
 
-const Branch    = require('../models/branch');
+const Permission    = require('../models/permission');
 const mongoUpdate   = require('../lib/mongo-update');
 
-var returnFields = Branch.attributes;
+var returnFields = Permission.attributes;
 var population = [];
 
 /**
- * create a new branch.
+ * create a new permission.
  *
- * @desc  creates a new branch and saves them
+ * @desc  creates a new permission and saves them
  *        in the database
  *
- * @param {Object}  branchData  Data for the branch to create
+ * @param {Object}  permissionData  Data for the permission to create
  *
  * @return {Promise}
  */
-exports.create = function create(branchData) {
-  debug('creating a new branch');
+exports.create = function create(permissionData) {
+  debug('creating a new permission');
 
   return co(function* () {
 
-    let unsavedBranch = new Branch(branchData);
-    let newBranch = yield unsavedBranch.save();
-    let branch = yield exports.get({ _id: newBranch._id });
+    let unsavedPermission = new Permission(permissionData);
+    let newPermission = yield unsavedPermission.save();
+    let permission = yield exports.get({ _id: newPermission._id });
 
-    return branch;
+    return permission;
 
 
   });
@@ -42,37 +42,37 @@ exports.create = function create(branchData) {
 };
 
 /**
- * delete a branch
+ * delete a permission
  *
- * @desc  delete data of the branch with the given
+ * @desc  delete data of the permission with the given
  *        id
  *
  * @param {Object}  query   Query Object
  *
  * @return {Promise}
  */
-exports.delete = function deleteBranch(query) {
-  debug('deleting branch: ', query);
+exports.delete = function deletePermission(query) {
+  debug('deleting permission: ', query);
 
   return co(function* () {
-    let branch = yield exports.get(query);
+    let permission = yield exports.get(query);
     let _empty = {};
 
-    if(!branch) {
+    if(!permission) {
       return _empty;
     } else {
-      yield branch.remove();
+      yield permission.remove();
 
-      return branch;
+      return permission;
     }
 
   });
 };
 
 /**
- * update a branch
+ * update a permission
  *
- * @desc  update data of the branch with the given
+ * @desc  update data of the permission with the given
  *        id
  *
  * @param {Object} query Query object
@@ -81,7 +81,7 @@ exports.delete = function deleteBranch(query) {
  * @return {Promise}
  */
 exports.update = function update(query, updates) {
-  debug('updating branch: ', query);
+  debug('updating permission: ', query);
 
   let now = moment().toISOString();
   let opts = {
@@ -91,44 +91,44 @@ exports.update = function update(query, updates) {
 
   updates = mongoUpdate(updates);
 
-  return Branch.findOneAndUpdate(query, updates, opts)
+  return Permission.findOneAndUpdate(query, updates, opts)
       .populate(population)
       .exec();
 };
 
 /**
- * get a branch.
+ * get a permission.
  *
- * @desc get a branch with the given id from db
+ * @desc get a permission with the given id from db
  *
  * @param {Object} query Query Object
  *
  * @return {Promise}
  */
-exports.get = function get(query, branch) {
-  debug('getting branch ', query);
+exports.get = function get(query, permission) {
+  debug('getting permission ', query);
 
-  return Branch.findOne(query, returnFields)
+  return Permission.findOne(query, returnFields)
     .populate(population)
     .exec();
 
 };
 
 /**
- * get a collection of branchs
+ * get a collection of permissions
  *
- * @desc get a collection of branchs from db
+ * @desc get a collection of permissions from db
  *
  * @param {Object} query Query Object
  *
  * @return {Promise}
  */
 exports.getCollection = function getCollection(query, qs) {
-  debug('fetching a collection of branchs');
+  debug('fetching a collection of permissions');
 
   return new Promise((resolve, reject) => {
     resolve(
-     Branch
+     Permission
       .find(query, returnFields)
       .populate(population)
       .stream());
@@ -138,16 +138,16 @@ exports.getCollection = function getCollection(query, qs) {
 };
 
 /**
- * get a collection of branchs using pagination
+ * get a collection of permissions using pagination
  *
- * @desc get a collection of branchs from db
+ * @desc get a collection of permissions from db
  *
  * @param {Object} query Query Object
  *
  * @return {Promise}
  */
 exports.getCollectionByPagination = function getCollection(query, qs) {
-  debug('fetching a collection of branchs');
+  debug('fetching a collection of permissions');
 
   let opts = {
     select:  returnFields,
@@ -159,7 +159,7 @@ exports.getCollectionByPagination = function getCollection(query, qs) {
 
 
   return new Promise((resolve, reject) => {
-    Branch.paginate(query, opts, function (err, docs) {
+    Permission.paginate(query, opts, function (err, docs) {
       if(err) {
         return reject(err);
       }

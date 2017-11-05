@@ -17,9 +17,9 @@ var PermissionSchema = new Schema({
     module:         { 
       type: String, 
       enums:[enums.MODULES.MFI_SETUP,enums.MODULES.USER_MANAGEMENT]}, //this list will be incorporating all modules in the system
-    endpoints:      [{
-      url: { type: String }
-     }],  
+      endpoints:  [{
+        url: { type: String }
+      }],  
     date_created:   { type: Date },
     last_modified:  { type: Date }
 });
@@ -51,7 +51,12 @@ PermissionSchema.pre('save', function preSaveMiddleware(next) {
  * Filter Permission Attributes to expose
  */
 PermissionSchema.statics.whitelist = {
-  __v: 0
+  name: 1,
+  description: 1,
+  module: 1,
+  date_created: 1,
+  last_modified: 1,
+  _id: 1
 };
 
 

@@ -1,20 +1,23 @@
+'use strict';
 // Access Layer for Token Data.
 
 /**
  * Load Module Dependencies.
  */
-var debug   = require('debug')('api:dal-token');
-var moment  = require('moment');
-var _       = require('lodash');
+const debug   = require('debug')('api:dal-token');
+const moment  = require('moment');
+const _       = require('lodash');
+const co      = require('co');
 
-var Token       = require('../models/token');
-//var User        = require('../models/user');
-var mongoUpdate = require('../lib/mongo-update');
+const Token       = require('../models/token');
+const User        = require('../models/user');
+const mongoUpdate = require('../lib/mongo-update');
 
-var returnFields = Token.whitelist;
+const returnFields = Token.whitelist;
+
 var population = [{
-  path: 'subscriber',
-  select: { _id: 1, realm: 1, role: 1, archived: 1 }
+  path: 'user',
+  select: User.attributes
 }];
 
 /**
@@ -24,48 +27,32 @@ var population = [{
  *        in the database
  *
  * @param {Object}  tokenData  Data for the token to create
- * @param {Function} cb       Callback for once saving is complete
  */
-exports.create = function create(tokenData, cb) {
+exports.create = function create(tokenData) {
   debug('creating a new token');
 
-  var query;
-
-  query = { user: tokenData.user };
-
-  // Make sure token does not exist
-  Token.findOne(query, function tokenExists(err, isPresent) {
-    if(err) {
-      return cb(err);
-    }
+  return co(function* () {
+    let searchQuery = { user: tokenData.user };
+    let isPresent = yield Token.findOne(searchQuery);
 
     if(isPresent) {
-      exports.get({ _id: isPresent._id }, function(err, token) {
-        if(err) {
-          return cb(err);
-        }
-        cb(null, token);
-      });
-      return;
+      let query = { _id: isPresent._id };
+      isPresent = yield exports.get(query);
+
+      return isPresent;
+
     }
 
-    // Create token if is new.
-    var tokenModel  = new Token(tokenData);
+    let newToken = new Token(tokenData);
+    let token = yield newToken.save();
 
-    tokenModel.save(function saveToken(err, data) {
-      if (err) {
-        return cb(err);
-      }
+    token = yield exports.get({ _id: token._id});
 
-      exports.get({ _id: data._id }, function(err, token) {
-        if(err) {
-          return cb(err);
-        }
-        cb(null, data);
-      });
 
-    });
+    return token;
+
   });
+
 };
 
 /**
@@ -75,29 +62,24 @@ exports.create = function create(tokenData, cb) {
  *        id
  *
  * @param {Object} query  Query Object
- * @param {Function} cb Callback for once delete is complete
  */
-exports.delete = function deleteItem(query, cb) {
-  debug('deleting token: ', query);
+exports.delete = function deleteItem(query) {
+  debug(`deleting token: ${query}`);
 
-  Token
-    .findOne(query, opts)
-    .populate(population)
-    .exec(function deleteToken(err, token) {
-      if (err) {
-        return cb(err);
-      }
+  return co(function* () {
+    let token = yield exports.get(query);
+    let _empty = {};
 
-      if(!token) {
-        return cb(null, {});
-      }
+    if(!token) {
+      return _empty;
+    } else {
+      yield token.remove();
 
-      token.remove(function(err) {
-        if(err) { return cb(err); }
-        cb(null, token);
-      });
+      return token;
+    }
 
   });
+
 };
 
 /**
@@ -108,29 +90,21 @@ exports.delete = function deleteItem(query, cb) {
  *
  * @param {Object} query  Query Object
  * @param {Object} updates  Update data
- * @param {Function} cb Callback for once update is complete
  */
-exports.update = function update(query, updates,  cb) {
-  debug('updating token: ', query);
+exports.update = function update(query, updates) {
+  debug(`updating token: ${query}`);
 
-  var now = moment().toISOString();
-  var opts = {
+  let now = moment().toISOString();
+  let opts = {
     'new': true,
     select: returnFields
   };
 
   updates = mongoUpdate(updates);
 
-  Token
-    .findOneAndUpdate(query, updates, opts)
-    .populate(population)
-    .exec(function updateToken(err, token) {
-      if(err) {
-        return cb(err);
-      }
-
-      cb(null, token || {});
-    });
+  return Token.findOneAndUpdate(query, updates, opts)
+      .populate(population)
+      .exec();
 };
 
 /**
@@ -139,22 +113,13 @@ exports.update = function update(query, updates,  cb) {
  * @desc get a token with the given id from db
  *
  * @param {Object} query  Query object
- * @param {Function} cb Callback for once fetch is complete
  */
-exports.get = function get(query, cb) {
-  debug('getting token ', query);
+exports.get = function get(query) {
+  debug(`getting token ${JSON.stringify(query)}`);
 
-  Token
-    .findOne(query, returnFields)
-    .populate(population)
-    .exec(function getToken(err, token) {
-      if(err) {
-        return cb(err);
-      }
-
-      cb(null, token || {});
-
-  });
+  return Token.findOne(query, returnFields)
+      .populate(population)
+      .exec();
 };
 
 /**
@@ -163,16 +128,17 @@ exports.get = function get(query, cb) {
  * @desc get a collection of tokens from db
  *
  * @param {Object} query Query object
- * @param {Function} cb Callback for once fetch is complete
  */
-exports.getCollection = function getCollection(query, qs, cb) {
-  debug('fetching a collection of tokens ', query);
+exports.getCollection = function getCollection(query, qs) {
+  debug(`fetching a collection of tokens ${query}`);
 
-  cb(null,
-     Token
-      .find(query, returnFields)
-      .populate(population)
-      .stream({ transform: JSON.stringify }));
+  return new Promise((resolve, reject) => {
+    resolve(null,
+       Token
+       .find(query, returnFields)
+       .populate(population)
+       .stream());
+  });
 
 };
 
@@ -182,13 +148,12 @@ exports.getCollection = function getCollection(query, qs, cb) {
  * @desc get a collection of tokens from db
  *
  * @param {Object} query Query Object
- * @param {Function} cb Callback for once fetch is complete
  */
-exports.getCollectionByPagination = function getCollection(query, qs, cb) {
+exports.getCollectionByPagination = function getCollection(query, qs) {
   debug('fetching a collection of tokens');
 
-  var opts = {
-    columns:  returnFields,
+  let opts = {
+    tokens:  returnFields,
     sortBy:   qs.sort || {},
     populate: population,
     page:     qs.page,
@@ -196,20 +161,22 @@ exports.getCollectionByPagination = function getCollection(query, qs, cb) {
   };
 
 
-  Token.paginate(query, opts, function (err, docs, page, count) {
-    if(err) {
-      return cb(err);
-    }
+  return new Promise((resolve, reject) => {
+    Token.paginate(query, opts, function (err, docs) {
+      if(err) {
+        return reject(err);
+      }
 
+      let data = {
+        total_pages: docs.pages,
+        total_docs_count: docs.total,
+        current_page: docs.page,
+        docs: docs.docs
+      };
 
-    var data = {
-      total_pages: page,
-      total_docs_count: count,
-      docs: docs
-    };
+      resolve(data);
 
-    cb(null, data);
-
+    });
   });
 
 };

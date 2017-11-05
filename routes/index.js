@@ -1,40 +1,31 @@
+'use strict';
+
 /**
- * Load Module dependencies
+ * Load Module Dependencies
  */
-var debug = require('debug')('api:routes');
+const Router = require('koa-router');
+const debug  = require('debug')('api:app-router');
 
-var pkg            = require('../package.json');
-var config         = require('../config');
-var MFIRouter      = require('./MFI');
-var branchRouter   = require('./branch');
+const rootRouter          = require('./root');
+const accountRouter      = require('./account');
 
+var appRouter = new Router();
 
-module.exports = function initRoutes(app) {
-  debug('loading routes');
-
-  app.use('/MFIs', MFIRouter);
-  app.use('/branches', branchRouter);
-
-  app.get('/', function (req, res) {
-    res.json({
-      name:       pkg.name,
-      version:    pkg.version,
-      description: pkg.description,
-      documentation: config.DOCS_URL,
-      uptime: process.uptime() + 's'
-    });
-  });
-
-  debug('routes loaded');
-};
-
-// OPEN ENDPOINTS
-module.exports.OPEN_ENDPOINTS = [
-    /\/media\/.*/,
-    /\/documentation\/.*/,
-    '/users/login',
-    '/users/signup',
-    '/',
-    '/MFIs/register'
+const OPEN_ENDPOINTS = [
+    /\/assets\/.*/,
+    '/'
 ];
 
+// Open Endpoints/Requires Authentication
+appRouter.OPEN_ENDPOINTS = OPEN_ENDPOINTS;
+
+// Add Root Router
+composeRoute('', rootRouter);
+//Add auth Router
+composeRoute('users', accountRouter);
+
+function composeRoute(endpoint, router){
+  appRouter.use(`/${endpoint}`, router.routes(), router.allowedMethods());
+}
+// Export App Router
+module.exports = appRouter;

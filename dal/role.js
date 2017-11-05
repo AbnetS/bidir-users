@@ -1,78 +1,80 @@
 'use strict';
-// Access Layer for Branch Data.
+// Access Layer for Role Data.
 
 /**
  * Load Module Dependencies.
  */
-const debug   = require('debug')('api:dal-branch');
+const debug   = require('debug')('api:dal-role');
 const moment  = require('moment');
 const _       = require('lodash');
 const co      = require('co');
 
-const Branch    = require('../models/branch');
+const Role        = require('../models/role');
+const Account       = require('../models/account');
 const mongoUpdate   = require('../lib/mongo-update');
 
-var returnFields = Branch.attributes;
-var population = [];
+var returnFields = Role.attributes;
+var population = [{
+  path: 'account',
+  select: Account.attributes
+}];
 
 /**
- * create a new branch.
+ * create a new role.
  *
- * @desc  creates a new branch and saves them
+ * @desc  creates a new role and saves them
  *        in the database
  *
- * @param {Object}  branchData  Data for the branch to create
+ * @param {Object}  roleData  Data for the role to create
  *
  * @return {Promise}
  */
-exports.create = function create(branchData) {
-  debug('creating a new branch');
+exports.create = function create(roleData) {
+  debug('creating a new role');
 
   return co(function* () {
+    let unsavedRole = new Role(roleData);
+    let newRole = yield unsavedRole.save();
+    let role = yield exports.get({ _id: newRole._id });
 
-    let unsavedBranch = new Branch(branchData);
-    let newBranch = yield unsavedBranch.save();
-    let branch = yield exports.get({ _id: newBranch._id });
-
-    return branch;
-
+    return role;
 
   });
 
 };
 
 /**
- * delete a branch
+ * delete a role
  *
- * @desc  delete data of the branch with the given
+ * @desc  delete data of the role with the given
  *        id
  *
  * @param {Object}  query   Query Object
  *
  * @return {Promise}
  */
-exports.delete = function deleteBranch(query) {
-  debug('deleting branch: ', query);
+exports.delete = function deleteRole(query) {
+  debug('deleting role: ', query);
 
   return co(function* () {
-    let branch = yield exports.get(query);
+    let role = yield exports.get(query);
     let _empty = {};
 
-    if(!branch) {
+    if(!role) {
       return _empty;
     } else {
-      yield branch.remove();
+      yield role.remove();
 
-      return branch;
+      return role;
     }
 
   });
 };
 
 /**
- * update a branch
+ * update a role
  *
- * @desc  update data of the branch with the given
+ * @desc  update data of the role with the given
  *        id
  *
  * @param {Object} query Query object
@@ -81,7 +83,7 @@ exports.delete = function deleteBranch(query) {
  * @return {Promise}
  */
 exports.update = function update(query, updates) {
-  debug('updating branch: ', query);
+  debug('updating role: ', query);
 
   let now = moment().toISOString();
   let opts = {
@@ -91,44 +93,44 @@ exports.update = function update(query, updates) {
 
   updates = mongoUpdate(updates);
 
-  return Branch.findOneAndUpdate(query, updates, opts)
+  return Role.findOneAndUpdate(query, updates, opts)
       .populate(population)
       .exec();
 };
 
 /**
- * get a branch.
+ * get a role.
  *
- * @desc get a branch with the given id from db
+ * @desc get a role with the given id from db
  *
  * @param {Object} query Query Object
  *
  * @return {Promise}
  */
-exports.get = function get(query, branch) {
-  debug('getting branch ', query);
+exports.get = function get(query, role) {
+  debug('getting role ', query);
 
-  return Branch.findOne(query, returnFields)
+  return Role.findOne(query, returnFields)
     .populate(population)
     .exec();
 
 };
 
 /**
- * get a collection of branchs
+ * get a collection of roles
  *
- * @desc get a collection of branchs from db
+ * @desc get a collection of roles from db
  *
  * @param {Object} query Query Object
  *
  * @return {Promise}
  */
 exports.getCollection = function getCollection(query, qs) {
-  debug('fetching a collection of branchs');
+  debug('fetching a collection of roles');
 
   return new Promise((resolve, reject) => {
     resolve(
-     Branch
+     Role
       .find(query, returnFields)
       .populate(population)
       .stream());
@@ -138,16 +140,16 @@ exports.getCollection = function getCollection(query, qs) {
 };
 
 /**
- * get a collection of branchs using pagination
+ * get a collection of roles using pagination
  *
- * @desc get a collection of branchs from db
+ * @desc get a collection of roles from db
  *
  * @param {Object} query Query Object
  *
  * @return {Promise}
  */
 exports.getCollectionByPagination = function getCollection(query, qs) {
-  debug('fetching a collection of branchs');
+  debug('fetching a collection of roles');
 
   let opts = {
     select:  returnFields,
@@ -159,7 +161,7 @@ exports.getCollectionByPagination = function getCollection(query, qs) {
 
 
   return new Promise((resolve, reject) => {
-    Branch.paginate(query, opts, function (err, docs) {
+    Role.paginate(query, opts, function (err, docs) {
       if(err) {
         return reject(err);
       }

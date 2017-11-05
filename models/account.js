@@ -1,28 +1,55 @@
-// Account Model Definiton.
+'use strict';
+// Account model Definiton.
 
 /**
  * Load Module Dependencies.
+ *
  */
-const mongoose  = require ('mongoose');
-const moment    = require ('moment');
-const paginator = require ('mongoose-paginator');
+const mongoose  = require('mongoose');
+const moment    = require('moment');
+const paginator = require('mongoose-paginate');
 
 var Schema = mongoose.Schema;
 
-var AccountSchema = Schema ({
-    user:           { type: Schema.Types.ObjectId, ref: 'User', required: true },
-    username:       { type: string, required: true },
-    password:       { type: string, required: true },
-    // roles:          [{
-    //   branch: { type: Schema.Types.ObjectId, ref: 'Branch' },
-    //   branch_roles:  [{ type: Schema.Types.ObjectId, ref: 'Role' }]
-    // }],
-    roles:          [{ type: Schema.Types.ObjectId, ref: 'Role' }],
-    date_created:   { type: Date },
-    last_modified:  { type: Date }
-})
+// New Account Schema model
+var AccountSchema = new Schema({
+  user:           { type: Schema.Types.ObjectId, ref: 'User' },
+  picture:        { type: String, default: '' },
+  gender:         { type: String, default: 'SELECT' },
+  first_name:     { type: String, default: '' },
+  last_name:      { type: String, default: '' },
+  email:          { type: String, default: '' },
+  phone:          { type: String, default: '' },
+  city:           { type: String, default: 'SELECT' },
+  country:        { type: String, default: 'SELECT' },
+  permissions:    [{ type: Schema.Types.ObjectId, ref: 'Permission'}],
+  role:           { type: Schema.Types.ObjectId, ref: 'Role', default: null },
+  branch:         { type: Schema.Types.ObjectId, ref: 'Branch', default: null },
+  date_created:   { type: Date },
+  last_modified:  { type: Date }
+});
 
-// add mongoose-troop middleware to support pagination
+/**
+ * Account Attributes to expose
+ */
+AccountSchema.statics.attributes = {
+  user: 1,
+  email: 1,
+  first_name: 1,
+  last_name: 1,
+  phone: 1,
+  picture: 1,
+  gender: 1,
+  city: 1,
+  country: 1,
+  permissions: 1,
+  role: 1,
+  branch: 1,
+  date_created:   1,
+  last_modified: 1
+};
+
+// Add middleware to support pagination
 AccountSchema.plugin(paginator);
 
 /**
@@ -30,29 +57,19 @@ AccountSchema.plugin(paginator);
  *
  * @desc  - Sets the date_created and last_modified
  *          attributes prior to save.
- *        - Hash tokens password.
  */
 AccountSchema.pre('save', function preSaveMiddleware(next) {
-  var instance = this;
+  let account = this;
 
   // set date modifications
-  var now = moment().toISOString();
+  let now = moment().toISOString();
 
-  instance.date_created = now;
-  instance.last_modified = now;
+  account.date_created = now;
+  account.last_modified = now;
 
   next();
 
 });
 
-/**
- * Model Attributes to expose
- */
-AccountSchema.statics.whitelist = {
-  _id: 1,
-  user: 1,
-  username: 1,
-  role: 1  
-};
-
-module.exports = mongoose.model ('Account', AccountSchema);
+// Expose Account model
+module.exports = mongoose.model('Account', AccountSchema);

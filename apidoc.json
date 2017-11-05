@@ -1,8 +1,9 @@
 {
-  "name": "LOS/BIDIR MFI SETUP MICROSERVICE API",
+  "name": "Users API",
   "version": "1.0.0",
-  "description": "LOS/BIDIR MFI SETUP MICROSERVICE API",
+  "description": "HTTP API service",
   "title": "API documentation",
-  "doc-url": ""
+  "doc-url": "docs.bidir.com/",
+  "url": "api.bidir.com"
 }
 

@@ -1,127 +1,152 @@
+'use strict';
+
 /**
  * Load Module Dependencies
  */
-var http  = require('http');
-var path = require('path');
+const http = require('http');
+const path = require('path');
+const crypto = require('crypto');
 
-var express    = require('express');
-var debug      = require('debug')('api:server');
-var mongoose   = require('mongoose');
-var validator  = require('express-validator');
-var bodyParser = require('body-parser');
-var cors       = require('cors');
+const koa         = require('koa');
+const mongoose    = require('mongoose');
+const validator   = require('koa-validate');
+const cors        = require('koa-cors');
+const debug       = require('debug')('api:server');
+const serve       = require('koa-static');
+const logger      = require('koa-logger');
+const etag        = require('koa-etag');
+const conditional = require('koa-conditional-get');
+const bodyParser  = require('koa-body');
 
-var config          = require('./config');
-var utils           = require('./lib');
-var authorize       = require('./lib/authorize');
-var multipart       = require('./lib/multipart');
-var storeMediaFiles = require('./lib/store-media');
-var routes          = require('./routes');
+const config       = require('./config');
+const utils        = require('./lib/utils');
+const authorize    = require('./lib/authorize');
+const errorHandler = require('./lib/error-handler');
+const router       = require('./routes');
 
-var app = express();
-var server;
+const PORT = config.PORT;
 
-// connect to mongoDB
+let app = koa();
+let server;
+
+// connect to MongoDB
 mongoose.connect(config.MONGODB.URL, config.MONGODB.OPTS);
 
-// MongoDB error handler
-mongoose.connection.on('error', utils.mongoError);
+// Add MongoDB connection error Handler
+mongoose.connection.on('error', () => {
+  debug('responding to MongoDB connection error');
 
-// MongoDB Disconnection handler
-mongoose.connection.on('disconnected', function handleMongodbDisconnection() {
+  console.error('MongoDB connection error. Please make sure MongoDB is running');
+
+  process.exit(1);
+});
+
+// Add Handler for MongoDB Disconnection Handler
+mongoose.connection.on('disconnected', () => {
+  // Reconnect to MongoDB
   mongoose.connect(config.MONGODB.URL, config.MONGODB.OPTS);
 });
 
-// Service Settings
-app.disable('x-powered-by');
-app.set('port', config.PORT);
+/**
+ * Application Settings
+ */
 
-// PRODUCTION Environment settings
-if(config.NODE_ENV === 'production'){
-  app.enable('trust proxy', 1);
+// Enable Proxy Trust
+if(app.env === 'production') {
+  app.proxy = true;
 }
 
-//--Setup Middleware--//
+/**
+ * Setup Middleware.
+ */
 
-// Documentation resource
-
-app.use('/assets', express.static(path.join(__dirname, 'assets')));
-
-app.use(cors(config.CORS_OPTS));
-//app.use(authorize().unless( { path: routes.OPEN_ENDPOINTS } ));
-app.use(bodyParser.urlencoded({
-  extended: true
+ // Enable CORS
+app.use(cors({
+  headers: 'Origin,X-Requested-With,Content-Type,Accept,Authorization'
 }));
-app.use(bodyParser.json());
-// app.use(multipart({
-//   limits: {
-//     files: 1,
-//     fileSize: config.MEDIA.FILE_SIZE
-//   },
-//   immediate: true
-// }));
-app.use(storeMediaFiles());
-app.use(validator());
 
+validator(app);
 
-// Init routes
-routes(app);
+// Set Error Handler
+app.use(errorHandler());
 
-// catch 404 and forward to error handler
-app.use(function(req, res, next) {
-  var err = new Error('Resource Requested Not Found');
-  err.status = 404;
-  next(err);
-});
-
-// error handlers
-
-// development error handler
-// will print stacktrace
-if (config.ENV === 'development') {
-  app.use(function(err, req, res, next) {
-    var status = err.status || 500;
-
-    res.status(status).json({
-      //error: {      
-        status: status,
-        type: err.name,
-        message: err.message,
-        specific_errors: err.specific_errors
-      //}
-      //raw: err
-    });
-  });
+// Enable Console logging(only in development)
+if(app.env === 'development') {
+  app.use(logger());
 }
 
-// production error handler
-// no stacktraces leaked to user
-app.use(function(err, req, res, next) {
-  var status = err.status || 500;
+// Enable setting of Etag Header for caching
+app.use(conditional());
+app.use(etag());
 
-  res.status(status).json({
-    error: {
-      status: status,
-      name: err.name,
-      message: err.message,
-      //specific_errors: err.specific_errors      
+// Enable Token-Based Auth
+app.use(authorize().unless({ path: router.OPEN_ENDPOINTS }));
+
+// Serve Static files
+app.use(serve(path.join(__dirname, './'), { index: false }));
+
+// Enable Body parser
+app.use(bodyParser({
+  multipart: true,
+  formidable: {
+    keepExtensions: true,
+    onFileBegin: (name, file) => {
+      let newFileName = crypto.randomBytes(12).toString('hex');
+      let folder = path.dirname(file.path);
+      let ext = path.extname(file.path);
+
+      newFileName = newFileName + ext;
+
+      file.path = path.join(folder, newFileName);
     }
-  });
+  }
+}));
+
+//--Routes--//
+
+app.use(router.routes());
+
+
+//-- Create HTTP Server --//
+
+server = http.createServer(app.callback());
+
+// Listen on provided port, on all network interfaces
+server.listen(PORT);
+
+// Set Error Handler for the server
+server.on('error', (error) => {
+  debug('Server ConnectionError Triggered');
+
+  if (error.syscall !== 'listen') {
+    throw error;
+  }
+
+  let bind = (typeof PORT === 'string') ? `Pipe ${PORT}` : `Port ${PORT}`;
+
+  // Handle Specific listen errors with friendly messages.
+  switch(error.code) {
+    case 'EACCES':
+      console.error(`${bind} requires elevated privileges`);
+      process.exit(1);
+      break;
+    case 'EADDRINUSE':
+      console.error(`${bind} is already in use`);
+      process.exit(1);
+      break;
+    default:
+      throw error;
+  }
 });
 
+// Set handler for 'listening' event
+server.on('listening', () => {
+  let addr = server.address();
+  let bind = (typeof PORT === 'string') ? `Pipe ${PORT}` : `Port ${PORT}`;
 
-/**
- * Create HTTP server.
- */
+  debug(`Listening on ${bind}`);
 
-server = http.createServer(app);
+});
 
-/**
- * Listen on provided port, on all network interfaces.
- */
-server.listen(config.PORT);
-server.on('error', utils.onError(config.PORT));
-server.on('listening', utils.onListening(server));
-
-
+// Export app for testing
 module.exports = app;

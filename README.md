@@ -1,10 +1,13 @@
-# API
+# Users Service.
 
-## TERMS.
+Responsibilities:
 
-- `user.realm` - Group users are associated with.
-- `user.role` - Role of the user in the respective they belong to.
+- User Authentication
+- User Entity Management
+
+### Internals
+Port `8030`
 
 ## License.
 
-Gebeya.
+Bidir

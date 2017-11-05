@@ -1,16 +1,22 @@
-/** * Load Module dependencies.
+'use strict';
+
+/**
+ * Load Module dependencies.
  */
-var path = require('path');
-var env     = process.env;
+const path = require('path');
 
-var PORT        = env.PORT || 8000;
-var API_URL     = '127.0.0.1:8000';
-var MONGODB_URL = env.MONGODB_URL || 'mongodb://127.0.0.1:27017/Bidir';
-var NODE_ENV    = env.NODE_ENV || 'development';
-var HOST        = 'localhost';
+const env = process.env;
 
-module.exports = {
+const PORT        = env.PORT || 8030;
+const API_URL     = env.API_URL || 'http://127.0.0.1:8030';
+const NODE_ENV    = env.NODE_ENV || 'development';
+const HOST        = env.HOST_IP || 'localhost';
 
+const MONGODB_URL = env.MONGODB_URL || 'mongodb://127.0.0.1:27017/bidir';
+
+let config = {
+
+  // Root Configs
   API_URL: API_URL,
 
   ENV: NODE_ENV,
@@ -19,7 +25,7 @@ module.exports = {
 
   HOST: HOST,
 
-  // MongoDB URL
+
   MONGODB: {
     URL: MONGODB_URL,
     OPTS: {
@@ -41,15 +47,12 @@ module.exports = {
     RANDOM_BYTE_LENGTH: 32
   },
 
-  MEDIA: {
-    FILE_SIZE: 1 * 1024 * 1024, // 1MB,
-    URL: API_URL + '/media/',
-    FILES_FOLDER: path.resolve(process.cwd(), './media') + '/'
-  },
 
-  STATIC_FILES: './assets',
-  MFI_LOGO_PATH: '/MFILogo',
-  ERROR_CODES:{
-    
+  ASSETS: {
+    FILE_SIZE: 2 * 1024 * 1024, // 1MB,
+    URL: API_URL + '/media/',
+    DIR: path.resolve(process.cwd(), './assets') + '/'
   }
 };
+
+module.exports = config;
