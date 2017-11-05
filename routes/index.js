@@ -8,6 +8,7 @@ const debug  = require('debug')('api:app-router');
 
 const rootRouter          = require('./root');
 const accountRouter      = require('./account');
+const clientRouter      = require('./client');
 
 var appRouter = new Router();
 
@@ -21,8 +22,10 @@ appRouter.OPEN_ENDPOINTS = OPEN_ENDPOINTS;
 
 // Add Root Router
 composeRoute('', rootRouter);
-//Add auth Router
+//Add accounts Router
 composeRoute('users', accountRouter);
+//Add clients Router
+composeRoute('users/clients', clientRouter);
 
 function composeRoute(endpoint, router){
   appRouter.use(`/${endpoint}`, router.routes(), router.allowedMethods());
