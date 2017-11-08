@@ -25,55 +25,6 @@ const BranchDal          = require('../dal/branch');
 const RoleDal           = require('../dal/role');
 const PermissionDal      = require('../dal/permission');
 
-
-/**
- * Create a account.
- *
- * @desc create a account using basic Authentication or Social Media
- *
- * @param {Function} next Middleware dispatcher
- *
- */
-exports.create = function* createAccount(next) {
-  debug('create account');
-
-  let body = this.request.body;
-
-  if(this.errors) {
-    return this.throw(new CustomError({
-      type: 'ACCOUNT_CREATION_ERROR',
-      message: JSON.stringify(this.errors)
-    }));
-  }
-
-  try {
-
-    let user = yield UserDal.get({ username: body.email });
-    console.log(user);
-
-    if(user) {
-      throw new Error('An Account with those Credentials already exists');
-
-    } else {
-      let account = yield boostrapAccount(body);
-
-      this.status = 201;
-      this.body = account;
-
-    }
-
-
-  } catch(ex) {
-    this.throw(new CustomError({
-      type: 'ACCOUNT_CREATION_ERROR',
-      message: ex.message
-    }));
-  }
-
-
-};
-
-
 /**
  * Get a single account.
  *

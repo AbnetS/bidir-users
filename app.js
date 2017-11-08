@@ -23,6 +23,7 @@ const utils        = require('./lib/utils');
 const authorize    = require('./lib/authorize');
 const errorHandler = require('./lib/error-handler');
 const router       = require('./routes');
+const migrator     = require('./_migrate');
 
 const PORT = config.PORT;
 
@@ -46,6 +47,9 @@ mongoose.connection.on('disconnected', () => {
   // Reconnect to MongoDB
   mongoose.connect(config.MONGODB.URL, config.MONGODB.OPTS);
 });
+
+// Migrate Data
+migrator();
 
 /**
  * Application Settings

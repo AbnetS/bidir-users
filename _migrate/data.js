@@ -1,12 +1,13 @@
 'use strict';
 
 module.exports = {
-  // admins
-  admins: [{
-    email: 'super@kukulu.game',
-    password: 'password',
-    username: 'super@kukulu.game',
-    name: 'Super Kukulu',
-    role: 'super'
-  }]
+	admins: [{
+		email: 'super@bidir.com',
+		phone_number: '093456456',
+		first_name: 'Super',
+		last_name: 'Admin',
+		password: 'mfipassword',
+		role: 'admin',
+		realm: 'super'
+	}]
 };
