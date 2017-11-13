@@ -19,35 +19,31 @@ var router  = Router();
  *
  * @apiDescription Create new User user
  *
- * @apiParam {String} signup_type Signup type either social or basic or anon
- * @apiParam {String} picture Profile Picture image
- * @apiParam {String} full_name Full Names
- * @apiParam {String} [email] Email Address
- * @apiParam {String} [phone] Phone Number
- * @apiParam {String} username Username either the phone_number or email, if Anonymous, app should create a unique one
- * @apiParam {String} [password] Password
- * @apiParam {String} [age] Age
- * @apiParam {String} [city] City
- * @apiParam {String} [Country] Country
- * @apiParam {String} gender Male or Female
- * @apiParam {String} [facebook] Facebook Link
- * @apiParam {String} [google] Instagram Link
+ * @apiParam {String} username Email Address
+ * @apiParam {String} password Account Password
+ * @apiParam {String} first_name First Name
+ * @apiParam {String} last_name Last Name
+ * @apiParam {String} email Email Address
+ * @apiParam {String} phone Phone Number
+ * @apiParam {String} user_role Role
+ * @apiParam {String} default_branch Default Branch for User
+ * @apiParam {String} role References to Role asigned to user
  *
  * @apiParamExample Request Example:
  *  {
- *    picture: "https://fb.cdn.ugusgu.us./user/285475474224/profile.png",
- *    full_name: "Mary Jane",
+ *    first_name: "Mary",
+ *    last_name: "Jane",
  *    email: "mary.jane@gmail.com",
  *    username: "mary.jane@gmail.com",
- *    city: "Nairobi",
- *    country: "Kenya",
- *    gender: "Female",
- *    facebook: "https://facebook.com/users/mary.jane",
- *    signup_type: "social"
+ *    phone: "095342345",
+ *    password: "password",
+ *    user_role: "loan_officer",
+ *    role : "556e1174a8952c9521286a60",
+ *    default_branch : "556e1174a8952c9521286a60"
  *  }
  *
  * @apiSuccess {String} _id user id
- * @apiSuccess {Object} player Player Data
+ * @apiSuccess {Object} account Account Data
  * @apiSuccess {Boolean} is_active Activeness
  * @apiSuccess {String} role User Role
  * @apiSuccess {String} realm User Realm
@@ -56,30 +52,29 @@ var router  = Router();
  * @apiSuccessExample Response Example:
  *  {
  *    _id : "556e1174a8952c9521286a60"
- *    is_active: true,
  *    username: "mary.jane@gmail.com",
  *    last_login: '2017-03-16T10:50:52.305Z',
- *    role: "player",
+ *    role: "loan_officer",
  *    realm: "user",
- *    player: {
+ *    account: {
  *      _id : "556e1174a8952c9521286a60",
  *      user : "556e1174a8952c9521286a60",
- *      device : "556e1174a8952c9521286a60",
- *      preferences : "556e1174a8952c9521286a60",
- *      score_board : "556e1174a8952c9521286a60",
- *      friends : "556e1174a8952c9521286a60",
- *      facebook: "https://facebook.com/users/mary.jane"
- *      full_name: "Mary Jane",
- *      phone: "",
- *      country: "Kenya",
- *      city: "Nairobi",
- *      email: "mary.jane@gmail.com",
+ *    	first_name: "Mary",
+ *    	last_name: "Jane",
+ *    	email: "mary.jane@gmail.com",
+ *    	phone: "095342345",
+ *      picture: "https://mfi.com/assets/account_5736573.png",
+ *      gender: "SELECT",
+ *      multi_branch: false,
+ *      default_branch: "556e1174a8952c9521286a60",
+ *      access_branches: [],
+ *      role: 556e1174a8952c9521286a60,
  *      ...
  *    }
  *  }
  *
  */
-router.post('/create', acl('admin'), userController.create);
+router.post('/create', acl('*'), userController.create);
 
 
 /**
@@ -93,8 +88,7 @@ router.post('/create', acl('admin'), userController.create);
  * and `per_page=<RESULTS_PER_PAGE>`.
  *
  * @apiSuccess {String} _id user id
- * @apiSuccess {Object} player Player Data
- * @apiSuccess {Boolean} is_active Activeness
+ * @apiSuccess {Object} account Account Data
  * @apiSuccess {String} role User Role
  * @apiSuccess {String} realm User Realm
  * @apiSuccess {String} last_login Last Login Time Stamp
@@ -104,27 +98,26 @@ router.post('/create', acl('admin'), userController.create);
  *    "total_pages": 1,
  *    "total_docs_count": 0,
  *    "docs": [{
- *      _id : "556e1174a8952c9521286a60"
- *      is_active: true,
- *      username: "mary.jane@gmail.com",
- *      last_login: '2017-03-16T10:50:52.305Z',
- *      role: "player",
- *      realm: "user",
- *      player: {
- *        _id : "556e1174a8952c9521286a60",
- *        user : "556e1174a8952c9521286a60",
- *        device : "556e1174a8952c9521286a60",
- *        preferences : "556e1174a8952c9521286a60",
- *        score_board : "556e1174a8952c9521286a60",
- *        friends : "556e1174a8952c9521286a60",
- *        facebook: "https://facebook.com/users/mary.jane"
- *        full_name: "Mary Jane",
- *        phone: "",
- *        country: "Kenya",
- *        city: "Nairobi",
- *        email: "mary.jane@gmail.com",
- *        ...
- *      }
+ *    _id : "556e1174a8952c9521286a60"
+ *    username: "mary.jane@gmail.com",
+ *    last_login: '2017-03-16T10:50:52.305Z',
+ *    role: "loan_officer",
+ *    realm: "user",
+ *    account: {
+ *      _id : "556e1174a8952c9521286a60",
+ *      user : "556e1174a8952c9521286a60",
+ *    	first_name: "Mary",
+ *    	last_name: "Jane",
+ *    	email: "mary.jane@gmail.com",
+ *    	phone: "095342345",
+ *      picture: "https://mfi.com/assets/account_5736573.png",
+ *      gender: "SELECT",
+ *      multi_branch: false,
+ *      default_branch: "556e1174a8952c9521286a60",
+ *      access_branches: [],
+ *      roles: [556e1174a8952c9521286a60],
+ *      ...
+ *    }
  *    }]
  *  }
  */
@@ -139,8 +132,7 @@ router.get('/paginate', acl(['admin']), userController.fetchAllByPagination);
  * @apiDescription Get a user user with the given id
  *
  * @apiSuccess {String} _id user id
- * @apiSuccess {Object} player Player Data
- * @apiSuccess {Boolean} is_active Activeness
+ * @apiSuccess {Object} account Account Data
  * @apiSuccess {String} role User Role
  * @apiSuccess {String} realm User Realm
  * @apiSuccess {String} last_login Last Login Time Stamp
@@ -148,24 +140,23 @@ router.get('/paginate', acl(['admin']), userController.fetchAllByPagination);
  * @apiSuccessExample Response Example:
  *  {
  *    _id : "556e1174a8952c9521286a60"
- *    is_active: true,
  *    username: "mary.jane@gmail.com",
  *    last_login: '2017-03-16T10:50:52.305Z',
- *    role: "player",
+ *    role: "loan_officer",
  *    realm: "user",
- *    player: {
+ *    account: {
  *      _id : "556e1174a8952c9521286a60",
  *      user : "556e1174a8952c9521286a60",
- *      device : "556e1174a8952c9521286a60",
- *      preferences : "556e1174a8952c9521286a60",
- *      score_board : "556e1174a8952c9521286a60",
- *      friends : "556e1174a8952c9521286a60",
- *      facebook: "https://facebook.com/users/mary.jane"
- *      full_name: "Mary Jane",
- *      phone: "",
- *      country: "Kenya",
- *      city: "Nairobi",
- *      email: "mary.jane@gmail.com",
+ *    	first_name: "Mary",
+ *    	last_name: "Jane",
+ *    	email: "mary.jane@gmail.com",
+ *    	phone: "095342345",
+ *      picture: "https://mfi.com/assets/account_5736573.png",
+ *      gender: "SELECT",
+ *      multi_branch: false,
+ *      default_branch: "556e1174a8952c9521286a60",
+ *      access_branches: [],
+ *      roles: [556e1174a8952c9521286a60],
  *      ...
  *    }
  *  }
@@ -190,7 +181,7 @@ router.get('/:id', acl(['*']), userController.fetchOne);
  * }
  *
  * @apiSuccess {String} _id user id
- * @apiSuccess {Object} player Player Data
+ * @apiSuccess {Object} account Account Data
  * @apiSuccess {Boolean} is_active Activeness
  * @apiSuccess {String} role User Role
  * @apiSuccess {String} realm User Realm
@@ -199,24 +190,23 @@ router.get('/:id', acl(['*']), userController.fetchOne);
  * @apiSuccessExample Response Example:
  *  {
  *    _id : "556e1174a8952c9521286a60"
- *    is_active: true,
  *    username: "mary.jane@gmail.com",
  *    last_login: '2017-03-16T10:50:52.305Z',
- *    role: "player",
+ *    role: "loan_officer",
  *    realm: "user",
- *    player: {
+ *    account: {
  *      _id : "556e1174a8952c9521286a60",
  *      user : "556e1174a8952c9521286a60",
- *      device : "556e1174a8952c9521286a60",
- *      preferences : "556e1174a8952c9521286a60",
- *      score_board : "556e1174a8952c9521286a60",
- *      friends : "556e1174a8952c9521286a60",
- *      facebook: "https://facebook.com/users/mary.jane"
- *      full_name: "Mary Jane",
- *      phone: "",
- *      country: "Kenya",
- *      city: "Nairobi",
- *      email: "mary.jane@gmail.com",
+ *    	first_name: "Mary",
+ *    	last_name: "Jane",
+ *    	email: "mary.jane@gmail.com",
+ *    	phone: "095342345",
+ *      picture: "https://mfi.com/assets/account_5736573.png",
+ *      gender: "SELECT",
+ *      multi_branch: false,
+ *      default_branch: "556e1174a8952c9521286a60",
+ *      access_branches: [],
+ *      roles: [556e1174a8952c9521286a60],
  *      ...
  *    }
  *  }

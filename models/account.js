@@ -22,9 +22,10 @@ var AccountSchema = new Schema({
   phone:          { type: String, default: '' },
   city:           { type: String, default: 'SELECT' },
   country:        { type: String, default: 'SELECT' },
-  roles:          [{ type: Schema.Types.ObjectId, ref: 'Role', default: null }],
+  role:          { type: Schema.Types.ObjectId, ref: 'Role', default: null },
   default_branch: { type: Schema.Types.ObjectId, ref: 'Branch', default: null },
   access_branches:[{ type: Schema.Types.ObjectId, ref: 'Branch' }],
+  multi_branches: { type: Boolean, default: false },
   date_created:   { type: Date },
   last_modified:  { type: Date }
 });
@@ -42,9 +43,10 @@ AccountSchema.statics.attributes = {
   gender: 1,
   city: 1,
   country: 1,
-  roles: 1,
+  role: 1,
   default_branch: 1,
   access_branches: 1,
+  multi_branches: 1,
   date_created:   1,
   last_modified: 1
 };

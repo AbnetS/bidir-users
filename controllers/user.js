@@ -46,7 +46,7 @@ exports.create = function* createUser(next) {
 
   try {
 
-    let user = yield UserDal.get({ username: body.email });
+    let user = yield UserDal.get({ username: body.username });
 
     if(user) {
       throw new Error('An User with those Credentials already exists');
@@ -54,23 +54,16 @@ exports.create = function* createUser(next) {
     } else {
     // Create User 
     user = yield UserDal.create({
-      username: body.email,
+      username: body.username,
       password: body.password,
       role: body.role,
-      realm: body.realm
+      created_by: this.state._user.username
     });
 
+    body.user = user._id;
+
     // Create Account Type
-    let account = yield AccountDal.create({
-      user: user._id,
-      email: body.email,
-      first_name: body.first_name,
-      last_name: body.last_name,
-      phone: body.phone,
-      role: body.role,
-      permissions: body.permissions,
-      branch: body.branch
-    });
+    let account = yield AccountDal.create(body);
 
     // Update User with Account
     user = yield UserDal.update({ _id: user._id }, { account: account._id });
