@@ -16,6 +16,8 @@ var appRouter = new Router();
 
 const OPEN_ENDPOINTS = [
     /\/assets\/.*/,
+    '/users/permissions/create',
+    '/users/roles/create',
     '/'
 ];
 

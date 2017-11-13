@@ -19,63 +19,32 @@ var router  = Router();
  *
  * @apiDescription Create new  role
  *
- * @apiParam {String} signup_type Signup type either social or basic or anon
- * @apiParam {String} picture Profile Picture image
- * @apiParam {String} full_name Full Names
- * @apiParam {String} [email] Email Address
- * @apiParam {String} [phone] Phone Number
- * @apiParam {String} rolename Rolename either the phone_number or email, if Anonymous, app should create a unique one
- * @apiParam {String} [password] Password
- * @apiParam {String} [age] Age
- * @apiParam {String} [city] City
- * @apiParam {String} [Country] Country
- * @apiParam {String} gender Male or Female
- * @apiParam {String} [facebook] Facebook Link
- * @apiParam {String} [google] Instagram Link
+ * @apiParam {String} name Role Name
+ * @apiParam {String} description Role Description
+ * @apiParam {Array} permissions Permissions References
  *
  * @apiParamExample Request Example:
  *  {
- *    picture: "https://fb.cdn.ugusgu.us./role/285475474224/profile.png",
- *    full_name: "Mary Jane",
- *    email: "mary.jane@gmail.com",
- *    rolename: "mary.jane@gmail.com",
- *    city: "Nairobi",
- *    country: "Kenya",
- *    gender: "Female",
- *    facebook: "https://facebook.com/roles/mary.jane",
- *    signup_type: "social"
+ *    name: "Loan Officer",
+ *    description: "Loan Officer Loans Roles",
+ *    permissions: ['556e1174a8952c9521286a60']
  *  }
  *
  * @apiSuccess {String} _id role id
- * @apiSuccess {Object} player Player Data
- * @apiSuccess {Boolean} is_active Activeness
- * @apiSuccess {String} role Role Role
- * @apiSuccess {String} realm Role Realm
- * @apiSuccess {String} last_login Last Login Time Stamp
+ * @apiSuccess {String} name Role Name
+ * @apiSuccess {String} description Role Description
+ * @apiSuccess {Array} permissions Permissions References
  *
  * @apiSuccessExample Response Example:
  *  {
- *    _id : "556e1174a8952c9521286a60"
- *    is_active: true,
- *    rolename: "mary.jane@gmail.com",
- *    last_login: '2017-03-16T10:50:52.305Z',
- *    role: "player",
- *    realm: "role",
- *    player: {
- *      _id : "556e1174a8952c9521286a60",
- *      role : "556e1174a8952c9521286a60",
- *      device : "556e1174a8952c9521286a60",
- *      preferences : "556e1174a8952c9521286a60",
- *      score_board : "556e1174a8952c9521286a60",
- *      friends : "556e1174a8952c9521286a60",
- *      facebook: "https://facebook.com/roles/mary.jane"
- *      full_name: "Mary Jane",
- *      phone: "",
- *      country: "Kenya",
- *      city: "Nairobi",
- *      email: "mary.jane@gmail.com",
- *      ...
- *    }
+ *    _id : "556e1174a8952c9521286a60",
+ *    name: "Loan Officer",
+ *    description: "Loan Officer Loans Module Roles",
+ *    permissions: [{
+ *	     _id : "556e1174a8952c9521286a60",
+ *       name: "Loan Application"
+ *       ...
+ *    }]
  *  }
  *
  */
@@ -93,42 +62,27 @@ router.post('/create', roleController.create);
  * and `per_page=<RESULTS_PER_PAGE>`.
  *
  * @apiSuccess {String} _id role id
- * @apiSuccess {Object} player Player Data
- * @apiSuccess {Boolean} is_active Activeness
- * @apiSuccess {String} role Role Role
- * @apiSuccess {String} realm Role Realm
- * @apiSuccess {String} last_login Last Login Time Stamp
+ * @apiSuccess {String} name Role Name
+ * @apiSuccess {String} description Role Description
+ * @apiSuccess {Array} permissions Permissions ie READ, UPDATE, DELETE, CREATE
  *
  * @apiSuccessExample Response Example:
  *  {
  *    "total_pages": 1,
  *    "total_docs_count": 0,
  *    "docs": [{
- *      _id : "556e1174a8952c9521286a60"
- *      is_active: true,
- *      rolename: "mary.jane@gmail.com",
- *      last_login: '2017-03-16T10:50:52.305Z',
- *      role: "player",
- *      realm: "role",
- *      player: {
- *        _id : "556e1174a8952c9521286a60",
- *        role : "556e1174a8952c9521286a60",
- *        device : "556e1174a8952c9521286a60",
- *        preferences : "556e1174a8952c9521286a60",
- *        score_board : "556e1174a8952c9521286a60",
- *        friends : "556e1174a8952c9521286a60",
- *        facebook: "https://facebook.com/roles/mary.jane"
- *        full_name: "Mary Jane",
- *        phone: "",
- *        country: "Kenya",
- *        city: "Nairobi",
- *        email: "mary.jane@gmail.com",
- *        ...
- *      }
+ *    _id : "556e1174a8952c9521286a60",
+ *    name: "Loan Officer",
+ *    description: "Loan Officer Loans Module Roles",
+ *    permissions: [{
+ *	     _id : "556e1174a8952c9521286a60",
+ *       name: "Loan Application"
+ *       ...
+ *    }],
  *    }]
  *  }
  */
-router.get('/paginate', acl(['admin']), roleController.fetchAllByPagination);
+router.get('/paginate', acl(['*']), roleController.fetchAllByPagination);
 
 /**
  * @api {get} /users/roles/:id Get Role
@@ -139,35 +93,20 @@ router.get('/paginate', acl(['admin']), roleController.fetchAllByPagination);
  * @apiDescription Get a role with the given id
  *
  * @apiSuccess {String} _id role id
- * @apiSuccess {Object} player Player Data
- * @apiSuccess {Boolean} is_active Activeness
- * @apiSuccess {String} role Role Role
- * @apiSuccess {String} realm Role Realm
- * @apiSuccess {String} last_login Last Login Time Stamp
+ * @apiSuccess {String} name Role Name
+ * @apiSuccess {String} description Role Description
+ * @apiSuccess {Array} permissions Permissions ie READ, UPDATE, DELETE, CREATE
  *
  * @apiSuccessExample Response Example:
  *  {
- *    _id : "556e1174a8952c9521286a60"
- *    is_active: true,
- *    rolename: "mary.jane@gmail.com",
- *    last_login: '2017-03-16T10:50:52.305Z',
- *    role: "player",
- *    realm: "role",
- *    player: {
- *      _id : "556e1174a8952c9521286a60",
- *      role : "556e1174a8952c9521286a60",
- *      device : "556e1174a8952c9521286a60",
- *      preferences : "556e1174a8952c9521286a60",
- *      score_board : "556e1174a8952c9521286a60",
- *      friends : "556e1174a8952c9521286a60",
- *      facebook: "https://facebook.com/roles/mary.jane"
- *      full_name: "Mary Jane",
- *      phone: "",
- *      country: "Kenya",
- *      city: "Nairobi",
- *      email: "mary.jane@gmail.com",
- *      ...
- *    }
+ *    _id : "556e1174a8952c9521286a60",
+ *    name: "Loan Officer",
+ *    description: "Loan Officer Loans Module Roles",
+ *    permissions: [{
+ *	     _id : "556e1174a8952c9521286a60",
+ *       name: "Loan Application"
+ *       ...
+ *    }],
  *  }
  *
  */
@@ -186,39 +125,24 @@ router.get('/:id', acl(['*']), roleController.fetchOne);
  *
  * @apiParamExample Request example:
  * {
- *    notes: "FB"
+ *    description: 'Loan officer Role'
  * }
  *
  * @apiSuccess {String} _id role id
- * @apiSuccess {Object} player Player Data
- * @apiSuccess {Boolean} is_active Activeness
- * @apiSuccess {String} role Role Role
- * @apiSuccess {String} realm Role Realm
- * @apiSuccess {String} last_login Last Login Time Stamp
+ * @apiSuccess {String} name Role Name
+ * @apiSuccess {String} description Role Description
+ * @apiSuccess {Array} permissions Permissions References
  *
  * @apiSuccessExample Response Example:
  *  {
- *    _id : "556e1174a8952c9521286a60"
- *    is_active: true,
- *    rolename: "mary.jane@gmail.com",
- *    last_login: '2017-03-16T10:50:52.305Z',
- *    role: "player",
- *    realm: "role",
- *    player: {
- *      _id : "556e1174a8952c9521286a60",
- *      role : "556e1174a8952c9521286a60",
- *      device : "556e1174a8952c9521286a60",
- *      preferences : "556e1174a8952c9521286a60",
- *      score_board : "556e1174a8952c9521286a60",
- *      friends : "556e1174a8952c9521286a60",
- *      facebook: "https://facebook.com/roles/mary.jane"
- *      full_name: "Mary Jane",
- *      phone: "",
- *      country: "Kenya",
- *      city: "Nairobi",
- *      email: "mary.jane@gmail.com",
- *      ...
- *    }
+ *    _id : "556e1174a8952c9521286a60",
+ *    name: "Loan Officer",
+ *    description: "Loan Officer Role",
+ *    permissions: [{
+ *	     _id : "556e1174a8952c9521286a60",
+ *       name: "Loan Application"
+ *       ...
+ *    }]
  *  }
  */
 router.put('/:id', acl(['*']), roleController.update);

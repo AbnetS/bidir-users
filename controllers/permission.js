@@ -34,6 +34,9 @@ exports.create = function* createPermission(next) {
 
   let body = this.request.body;
 
+  this.checkBody('name')
+      .notEmpty('Permission name is empty');
+
   if(this.errors) {
     return this.throw(new CustomError({
       type: 'PERMISSION_CREATION_ERROR',

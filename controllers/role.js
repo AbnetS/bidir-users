@@ -34,6 +34,9 @@ exports.create = function* createRole(next) {
 
   let body = this.request.body;
 
+  this.checkBody('name')
+      .notEmpty('Role name is empty');
+
   if(this.errors) {
     return this.throw(new CustomError({
       type: 'ROLE_CREATION_ERROR',

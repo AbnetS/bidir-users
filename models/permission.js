@@ -13,7 +13,7 @@ var Schema = mongoose.Schema;
 
 var PermissionSchema = new Schema({       
     name:           { type: String, required: true },
-    description:    { type: String }, 
+    description:    { type: String, default: 'No Description' }, 
     module:         { 
       type: String, 
       enums:[enums.MODULES.MFI_SETUP,enums.MODULES.USER_MANAGEMENT]

@@ -19,67 +19,40 @@ var router  = Router();
  *
  * @apiDescription Create new  permission
  *
- * @apiParam {String} signup_type Signup type either social or basic or anon
- * @apiParam {String} picture Profile Picture image
- * @apiParam {String} full_name Full Names
- * @apiParam {String} [email] Email Address
- * @apiParam {String} [phone] Phone Number
- * @apiParam {String} permissionname Permissionname either the phone_number or email, if Anonymous, app should create a unique one
- * @apiParam {String} [password] Password
- * @apiParam {String} [age] Age
- * @apiParam {String} [city] City
- * @apiParam {String} [Country] Country
- * @apiParam {String} gender Male or Female
- * @apiParam {String} [facebook] Facebook Link
- * @apiParam {String} [google] Instagram Link
+ * @apiParam {String} name Permission Name
+ * @apiParam {String} description Permission Description
+ * @apiParam {String} module Module
+ * @apiParam {Array} endpoints Array of Endpoints
+ * @apiParam {Array} operations Operations ie READ, UPDATE, DELETE, CREATE
  *
  * @apiParamExample Request Example:
  *  {
- *    picture: "https://fb.cdn.ugusgu.us./permission/285475474224/profile.png",
- *    full_name: "Mary Jane",
- *    email: "mary.jane@gmail.com",
- *    permissionname: "mary.jane@gmail.com",
- *    city: "Nairobi",
- *    country: "Kenya",
- *    gender: "Female",
- *    facebook: "https://facebook.com/permissions/mary.jane",
- *    signup_type: "social"
+ *    name: "Loan Officer",
+ *    description: "Loan Officer Loans Module Permissions",
+ *    module: "LOAN_APPLICATION",
+ *    operations: ['CREATE'],
+ *    endpoints: []
  *  }
  *
  * @apiSuccess {String} _id permission id
- * @apiSuccess {Object} player Player Data
- * @apiSuccess {Boolean} is_active Activeness
- * @apiSuccess {String} role Permission Role
- * @apiSuccess {String} realm Permission Realm
- * @apiSuccess {String} last_login Last Login Time Stamp
+ * @apiSuccess {String} name Permission Name
+ * @apiSuccess {String} description Permission Description
+ * @apiSuccess {String} module Module
+ * @apiSuccess {Array} endpoints Array of Endpoints
+ * @apiSuccess {Array} operations Operations ie READ, UPDATE, DELETE, CREATE
  *
  * @apiSuccessExample Response Example:
  *  {
- *    _id : "556e1174a8952c9521286a60"
- *    is_active: true,
- *    permissionname: "mary.jane@gmail.com",
- *    last_login: '2017-03-16T10:50:52.305Z',
- *    role: "player",
- *    realm: "permission",
- *    player: {
- *      _id : "556e1174a8952c9521286a60",
- *      permission : "556e1174a8952c9521286a60",
- *      device : "556e1174a8952c9521286a60",
- *      preferences : "556e1174a8952c9521286a60",
- *      score_board : "556e1174a8952c9521286a60",
- *      friends : "556e1174a8952c9521286a60",
- *      facebook: "https://facebook.com/permissions/mary.jane"
- *      full_name: "Mary Jane",
- *      phone: "",
- *      country: "Kenya",
- *      city: "Nairobi",
- *      email: "mary.jane@gmail.com",
- *      ...
- *    }
+ *    _id : "556e1174a8952c9521286a60",
+ *    name: "Loan Officer",
+ *    description: "Loan Officer Loans Module Permissions",
+ *    module: "LOAN_APPLICATION",
+ *    operations: ['CREATE'],
+ *    endpoints: []
  *  }
  *
  */
-router.post('/create',  permissionController.create);
+router.post('/create', permissionController.create);
 
 
 /**
@@ -93,42 +66,27 @@ router.post('/create',  permissionController.create);
  * and `per_page=<RESULTS_PER_PAGE>`.
  *
  * @apiSuccess {String} _id permission id
- * @apiSuccess {Object} player Player Data
- * @apiSuccess {Boolean} is_active Activeness
- * @apiSuccess {String} role Permission Role
- * @apiSuccess {String} realm Permission Realm
- * @apiSuccess {String} last_login Last Login Time Stamp
+ * @apiSuccess {String} name Permission Name
+ * @apiSuccess {String} description Permission Description
+ * @apiSuccess {String} module Module
+ * @apiSuccess {Array} endpoints Array of Endpoints
+ * @apiSuccess {Array} operations Operations ie READ, UPDATE, DELETE, CREATE
  *
  * @apiSuccessExample Response Example:
  *  {
  *    "total_pages": 1,
  *    "total_docs_count": 0,
  *    "docs": [{
- *      _id : "556e1174a8952c9521286a60"
- *      is_active: true,
- *      permissionname: "mary.jane@gmail.com",
- *      last_login: '2017-03-16T10:50:52.305Z',
- *      role: "player",
- *      realm: "permission",
- *      player: {
- *        _id : "556e1174a8952c9521286a60",
- *        permission : "556e1174a8952c9521286a60",
- *        device : "556e1174a8952c9521286a60",
- *        preferences : "556e1174a8952c9521286a60",
- *        score_board : "556e1174a8952c9521286a60",
- *        friends : "556e1174a8952c9521286a60",
- *        facebook: "https://facebook.com/permissions/mary.jane"
- *        full_name: "Mary Jane",
- *        phone: "",
- *        country: "Kenya",
- *        city: "Nairobi",
- *        email: "mary.jane@gmail.com",
- *        ...
- *      }
+ *    _id : "556e1174a8952c9521286a60",
+ *    name: "Loan Officer",
+ *    description: "Loan Officer Loans Module Permissions",
+ *    module: "LOAN_APPLICATION",
+ *    operations: ['CREATE'],
+ *    endpoints: []
  *    }]
  *  }
  */
-router.get('/paginate', acl(['admin']), permissionController.fetchAllByPagination);
+router.get('/paginate', acl(['*']), permissionController.fetchAllByPagination);
 
 /**
  * @api {get} /users/permissions/:id Get Permission
@@ -139,35 +97,20 @@ router.get('/paginate', acl(['admin']), permissionController.fetchAllByPaginatio
  * @apiDescription Get a permission with the given id
  *
  * @apiSuccess {String} _id permission id
- * @apiSuccess {Object} player Player Data
- * @apiSuccess {Boolean} is_active Activeness
- * @apiSuccess {String} role Permission Role
- * @apiSuccess {String} realm Permission Realm
- * @apiSuccess {String} last_login Last Login Time Stamp
+ * @apiSuccess {String} name Permission Name
+ * @apiSuccess {String} description Permission Description
+ * @apiSuccess {String} module Module
+ * @apiSuccess {Array} endpoints Array of Endpoints
+ * @apiSuccess {Array} operations Operations ie READ, UPDATE, DELETE, CREATE
  *
  * @apiSuccessExample Response Example:
  *  {
- *    _id : "556e1174a8952c9521286a60"
- *    is_active: true,
- *    permissionname: "mary.jane@gmail.com",
- *    last_login: '2017-03-16T10:50:52.305Z',
- *    role: "player",
- *    realm: "permission",
- *    player: {
- *      _id : "556e1174a8952c9521286a60",
- *      permission : "556e1174a8952c9521286a60",
- *      device : "556e1174a8952c9521286a60",
- *      preferences : "556e1174a8952c9521286a60",
- *      score_board : "556e1174a8952c9521286a60",
- *      friends : "556e1174a8952c9521286a60",
- *      facebook: "https://facebook.com/permissions/mary.jane"
- *      full_name: "Mary Jane",
- *      phone: "",
- *      country: "Kenya",
- *      city: "Nairobi",
- *      email: "mary.jane@gmail.com",
- *      ...
- *    }
+ *    _id : "556e1174a8952c9521286a60",
+ *    name: "Loan Officer",
+ *    description: "Loan Officer Loans Module Permissions",
+ *    module: "LOAN_APPLICATION",
+ *    operations: ['CREATE'],
+ *    endpoints: []
  *  }
  *
  */
@@ -186,39 +129,24 @@ router.get('/:id', acl(['*']), permissionController.fetchOne);
  *
  * @apiParamExample Request example:
  * {
- *    notes: "FB"
+ *    operations: ['CREATE', 'UPDATE']
  * }
  *
  * @apiSuccess {String} _id permission id
- * @apiSuccess {Object} player Player Data
- * @apiSuccess {Boolean} is_active Activeness
- * @apiSuccess {String} role Permission Role
- * @apiSuccess {String} realm Permission Realm
- * @apiSuccess {String} last_login Last Login Time Stamp
+ * @apiSuccess {String} name Permission Name
+ * @apiSuccess {String} description Permission Description
+ * @apiSuccess {String} module Module
+ * @apiSuccess {Array} endpoints Array of Endpoints
+ * @apiSuccess {Array} operations Operations ie READ, UPDATE, DELETE, CREATE
  *
  * @apiSuccessExample Response Example:
  *  {
- *    _id : "556e1174a8952c9521286a60"
- *    is_active: true,
- *    permissionname: "mary.jane@gmail.com",
- *    last_login: '2017-03-16T10:50:52.305Z',
- *    role: "player",
- *    realm: "permission",
- *    player: {
- *      _id : "556e1174a8952c9521286a60",
- *      permission : "556e1174a8952c9521286a60",
- *      device : "556e1174a8952c9521286a60",
- *      preferences : "556e1174a8952c9521286a60",
- *      score_board : "556e1174a8952c9521286a60",
- *      friends : "556e1174a8952c9521286a60",
- *      facebook: "https://facebook.com/permissions/mary.jane"
- *      full_name: "Mary Jane",
- *      phone: "",
- *      country: "Kenya",
- *      city: "Nairobi",
- *      email: "mary.jane@gmail.com",
- *      ...
- *    }
+ *    _id : "556e1174a8952c9521286a60",
+ *    name: "Loan Officer",
+ *    description: "Loan Officer Loans Module Permissions",
+ *    module: "LOAN_APPLICATION",
+ *    operations: ['CREATE', 'UPDATE'],
+ *    endpoints: []
  *  }
  */
 router.put('/:id', acl(['*']), permissionController.update);
