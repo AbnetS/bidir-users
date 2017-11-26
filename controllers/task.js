@@ -130,8 +130,6 @@ exports.updateStatus = function* updateTask(next) {
         }
       }
 
-      
-
       task = yield TaskDal.update(query, body);
     }
 
