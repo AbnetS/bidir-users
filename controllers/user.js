@@ -89,9 +89,10 @@ exports.create = function* createUser(next) {
 
     // Create Task
     yield TaskDal.create({
-      account: account._id,
-      task: 'Account Approval',
-      task_type: 'Approve'
+      task: `Approve New Account of ${body.first_name} ${body.last_name}`,
+      task_type: 'approve',
+      entity_ref: account._id,
+      entity_type: 'account'
     })
     
     this.status = 201;
