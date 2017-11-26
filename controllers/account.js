@@ -151,7 +151,9 @@ exports.fetchAllByPagination = function* fetchAllAccounts(next) {
   // retrieve pagination query params
   let page   = this.query.page || 1;
   let limit  = this.query.per_page || 10;
-  let query = {};
+  let query = {
+    archived: false
+  };
 
   let sortType = this.query.sort_by;
   let sort = {};
@@ -233,39 +235,3 @@ exports.getBranchAccounts = function* getBranchAccounts(next) {
     }));
   }
 };
-
-
-//--UTILITIES--//
-
-/**
- * Bootstrap Account based to signup type
- */
-function boostrapAccount(body) {
-  return co(function* () {
-    // Create Account Type
-    let user = yield UserDal.create({
-      username: body.email,
-      password: body.password,
-      role: body.role,
-      realm: body.realm
-    });
-
-    // Create Account Type
-    let account = yield AccountDal.create({
-      user: user._id,
-      email: body.email,
-      first_name: body.first_name,
-      last_name: body.last_name,
-      phone: body.phone,
-      role: body.role,
-      permissions: body.permissions,
-      branch: body.branch
-    });
-
-    // Update Account with Player
-    user = yield UserDal.update({ _id: user._id }, { account: account._id });
-    return account;
-
-  });
-}
-

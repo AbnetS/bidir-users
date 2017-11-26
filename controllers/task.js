@@ -78,16 +78,20 @@ exports.updateStatus = function* updateTask(next) {
   try {
     let task;
     let account = yield AccountDal.get({ user: user._id });
-    let isPermitted = false;
+    let canApprove = false;
+    let canAuthorize = false;
+    let canDelete = false;
+    let canRead = false;
+    let canModify = false;
 
     for(let permission of account.role.permissions) {
       for(let operation of permission.operations) {
-        if(operation === 'Approve') isPermitted = true;
+        if(operation === 'Approve') canApprove = true;
+        if(operation === 'Authorize') canAuthorize = true;
+        if(operation === 'Delete') canDelete = true;
+        if(operation === 'Read') canRead = true;
+        if(operation === 'Modify') canModify = true;
       }
-    }
-
-    if(!isPermitted) {
-      throw new Error('You are not allowed to complete this action!')
     }
 
     if(body.status === 'cancelled' || body.status === 'pending') {
@@ -97,12 +101,31 @@ exports.updateStatus = function* updateTask(next) {
       task = yield TaskDal.get(query);
 
       if(task.task_type === 'approve') {
+        if(!canApprove) throw new Error('You are not allowed to complete this action');
+
         switch(task.entity_type) {
           case 'account':
             yield UserDal.update({ account: task.entity_ref }, { status: 'active '});
             break;
           case 'screening':
             yield ScreeningDal.update({ _id: task.entity_ref }, { status: 'approved '});
+            break;
+        }
+      } else if(task.task_type === 'delete') {
+        if(!canDelete) throw new Error('You are not allowed to complete this action');
+
+        switch(task.entity_type) {
+          case 'account':
+            yield UserDal.update({ account: task.entity_ref }, { status: 'archived', archived: true });
+            yield AccountDal.update({ _id: task.entity_ref }, { archived: true });
+            break;
+        }
+      } else if(task.task_type === 'update') {
+        if(!canModify) throw new Error('You are not allowed to complete this action');
+
+        switch(task.entity_type) {
+          case 'account':
+            yield UserDal.update({ account: task.entity_ref }, { status: 'suspended' });
             break;
         }
       }

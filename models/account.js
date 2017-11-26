@@ -28,6 +28,7 @@ var AccountSchema = new Schema({
   default_branch: { type: Schema.Types.ObjectId, ref: 'Branch', default: null },
   access_branches:[{ type: Schema.Types.ObjectId, ref: 'Branch' }],
   multi_branches: { type: Boolean, default: false },
+  archived:       { type: Boolean, default: false },
   date_created:   { type: Date },
   last_modified:  { type: Date }
 });
@@ -51,6 +52,7 @@ AccountSchema.statics.attributes = {
   multi_branches: 1,
   hired_date: 1,
   grandfather_name: 1,
+  archived: 1,
   date_created:   1,
   last_modified: 1
 };

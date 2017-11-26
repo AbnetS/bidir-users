@@ -155,8 +155,9 @@ exports.fetchOne = function* fetchOneUser(next) {
 exports.updateStatus = function* updateUser(next) {
   debug(`updating status user: ${this.params.id}`);
 
-  this.checkBody('is_active')
-      .notEmpty('is_active should not be empty');
+  this.checkBody('status')
+      .notEmpty('Status should not be empty')
+      .isIn(['suspend', 'approved', 'pending'], 'Status should be suspended, pending or approved')
 
   let query = {
     _id: this.params.id
@@ -164,12 +165,32 @@ exports.updateStatus = function* updateUser(next) {
   let body = this.request.body;
 
   try {
-    let user = yield UserDal.update(query, body);
+    let account = yield AccountDal.get({ user: query._id });
+
+    if(body.status === 'suspended') {
+      // Create Task
+      yield TaskDal.create({
+        task: `Deactivate Account of ${account.first_name} ${account.last_name}`,
+        task_type: 'update',
+        entity_ref: account._id,
+        entity_type: 'account'
+      })
+    } else if(body.status === 'approved') {
+      // Create Task
+      yield TaskDal.create({
+        task: `Activate Account of ${account.first_name} ${account.last_name}`,
+        task_type: 'update',
+        entity_ref: account._id,
+        entity_type: 'account'
+      })
+    } else {
+      yield UserDal.update(query, body);
+    }
 
     yield LogDal.track({
       event: 'user_status_update',
       user: this.state._user._id ,
-      message: `Update Status for ${user.email}`,
+      message: `Update Status for ${user.username}`,
       diff: body
     });
 
@@ -236,7 +257,9 @@ exports.fetchAllByPagination = function* fetchAllUsers(next) {
   // retrieve pagination query params
   let page   = this.query.page || 1;
   let limit  = this.query.per_page || 10;
-  let query = {};
+  let query = {
+    archived: false
+  };
 
   let sortType = this.query.sort_by;
   let sort = {};
@@ -260,17 +283,63 @@ exports.fetchAllByPagination = function* fetchAllUsers(next) {
   }
 };
 
-
-//--UTILITIES--//
-
 /**
- * Bootstrap User based to signup type
+ * Delete a single user.
+ *
+ * @desc Delete/Archive a user with the given id
+ *
+ * @param {Function} next Middleware dispatcher
  */
-function boostrapUser(body) {
-  return co(function* () {
+exports.remove = function* removeUser(next) {
+  debug(`delete user: ${this.params.id}`);
 
-    return user;
+  let query = {
+    _id: this.params.id
+  };
 
-  });
-}
+  try {
+    let user = yield UserDal.get(query);
+    if(user.archived) {
+      throw new Error('User is not Available');
+    }
+    let account = yield AccountDal.get({ user: user._id });
 
+    if(user.status === 'pending') {
+      yield UserDal.update(query, {
+        status: 'archived',
+        archived: true
+      });
+
+      yield AccountDal.update({ user: user._id },{
+        archived: true
+      })
+    } else if(user.status === 'approved') {
+      // Create Task
+      yield TaskDal.create({
+        task: `Remove  Account of ${account.first_name} ${account.last_name}`,
+        task_type: 'delete',
+        entity_ref: account._id,
+        entity_type: 'account'
+      })
+    }
+
+    
+
+    yield LogDal.track({
+      event: 'user_update',
+      user: this.state._user._id ,
+      message: `Update Info for ${user.username}`,
+      diff: body
+    });
+
+    this.body = user;
+
+  } catch(ex) {
+    return this.throw(new CustomError({
+      type: 'UPDATE_USER_ERROR',
+      message: ex.message
+    }));
+
+  }
+
+};
