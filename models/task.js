@@ -45,7 +45,13 @@ TaskSchema.pre('save', function preSaveMiddleware(next) {
  * Filter Task Attributes to expose
  */
 TaskSchema.statics.whitelist = {
-  __v: 0
+  _id: 1,
+  account: 1,
+  task: 1,
+  task_type: 1,
+  status: 1,
+  date_created: 1,
+  last_modified: 1
 };
 
 

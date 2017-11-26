@@ -23,6 +23,7 @@ const BranchDal          = require('../dal/branch');
 const RoleDal           = require('../dal/role');
 const PermissionDal      = require('../dal/permission');
 const AccountDal        = require('../dal/account');
+const TaskDal           = require('../dal/task');
 
 
 /**
@@ -37,6 +38,21 @@ exports.create = function* createUser(next) {
   debug('create user');
 
   let body = this.request.body;
+
+  this.checkBody('username')
+      .notEmpty('Username is Empty');
+  this.checkBody('password')
+      .notEmpty('Password is Empty!!');
+  this.checkBody('role')
+      .notEmpty('Role Reference is Empty');
+  this.checkBody('first_name')
+      .notEmpty('First Name is Empty');
+  this.checkBody('last_name')
+      .notEmpty('Last Name is Empty')
+  this.checkBody('default_branch')
+      .notEmpty('Default Branch Reference is empty');
+  this.checkBody('user_role')
+      .notEmpty('User Role Name is Empty');
 
   if(this.errors) {
     return this.throw(new CustomError({
@@ -57,8 +73,9 @@ exports.create = function* createUser(next) {
     user = yield UserDal.create({
       username: body.username,
       password: body.password,
-      role: body.role,
-      created_by: this.state._user.username
+      role: body.user_role,
+      created_by: this.state._user.username,
+      status: 'pending'
     });
 
     body.user = user._id;
@@ -69,6 +86,13 @@ exports.create = function* createUser(next) {
 
     // Update User with Account
     user = yield UserDal.update({ _id: user._id }, { account: account._id });
+
+    // Create Task
+    yield TaskDal.create({
+      account: account._id,
+      task: 'Account Approval',
+      task_type: 'Approve'
+    })
     
     this.status = 201;
     this.body = user;

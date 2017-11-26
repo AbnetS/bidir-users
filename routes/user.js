@@ -24,8 +24,7 @@ var router  = Router();
  * @apiParam {String} first_name First Name
  * @apiParam {String} last_name Last Name
  * @apiParam {String} email Email Address
- * @apiParam {String} phone Phone Number
- * @apiParam {String} user_role Role
+ * @apiParam {String} user_role Role name ie loan_officer
  * @apiParam {String} default_branch Default Branch for User
  * @apiParam {String} role References to Role asigned to user
  *
@@ -35,7 +34,6 @@ var router  = Router();
  *    last_name: "Jane",
  *    email: "mary.jane@gmail.com",
  *    username: "mary.jane@gmail.com",
- *    phone: "095342345",
  *    password: "password",
  *    user_role: "loan_officer",
  *    role : "556e1174a8952c9521286a60",
