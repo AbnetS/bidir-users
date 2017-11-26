@@ -22,6 +22,7 @@ const LogDal             = require('../dal/log');
 const BranchDal          = require('../dal/branch');
 const RoleDal           = require('../dal/role');
 const PermissionDal      = require('../dal/permission');
+const AccountDal        = require('../dal/account');
 
 
 /**
@@ -61,6 +62,7 @@ exports.create = function* createUser(next) {
     });
 
     body.user = user._id;
+    delete body.role;
 
     // Create Account Type
     let account = yield AccountDal.create(body);

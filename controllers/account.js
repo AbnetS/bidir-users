@@ -17,6 +17,8 @@ const validator  = require('validator');
 const config             = require('../config');
 const CustomError        = require('../lib/custom-error');
 
+const Account            = require('../models/account');
+
 const TokenDal           = require('../dal/token');
 const AccountDal         = require('../dal/account');
 const UserDal            = require('../dal/user');
@@ -168,6 +170,65 @@ exports.fetchAllByPagination = function* fetchAllAccounts(next) {
   } catch(ex) {
     return this.throw(new CustomError({
       type: 'FETCH_PAGINATED_ACCOUNTS_COLLECTION_ERROR',
+      message: ex.message
+    }));
+  }
+};
+
+/**
+ * Get a branch users
+ *
+ * @desc Fetch a users of a given branch or access to branches
+ *
+ * @param {Function} next Middleware dispatcher
+ */
+exports.getBranchAccounts = function* getBranchAccounts(next) {
+  debug('get branch users');
+
+  // retrieve pagination query params
+  let page   = this.query.page || 1;
+  let limit  = this.query.per_page || 10;
+
+  let sortType = this.query.sort_by;
+  let sort = {};
+  sortType ? (sort[sortType] = 1) : null;
+
+  let opts = {
+    page: +page,
+    limit: +limit,
+    sort: sort
+  };
+
+  try {
+    let query;
+    let user = this.state._user._id;
+    let account = yield Account.findOne({ user: user }).exec();
+    
+    if(this.query.branch) {
+      query = {
+        $or: [{
+          access_branches: this.query.branch,
+          default_branch:  this.query.branch
+        }]
+      }
+    } else {
+      query = { $or: [{}] }
+      if(account.access_branches.length) {
+        query.$or[0].access_branches = { $in: account.access_branches };
+      }
+
+      if(account.default_branch) {
+        query.$or[0].default_branch = account.default_branch;
+      }
+    }
+
+    let accounts = yield AccountDal.getCollectionByPagination(query, opts);
+
+    this.body = accounts;
+
+  } catch(ex) {
+    return this.throw(new CustomError({
+      type: 'BRANCH_ACCOUNTS_COLLECTION_ERROR',
       message: ex.message
     }));
   }

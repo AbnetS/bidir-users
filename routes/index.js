@@ -27,7 +27,7 @@ appRouter.OPEN_ENDPOINTS = OPEN_ENDPOINTS;
 // Add Root Router
 composeRoute('', rootRouter);
 //Add users Router
-composeRoute('users', accountRouter);
+composeRoute('users', userRouter);
 //Add Accounts Router
 composeRoute('users/accounts', accountRouter);
 //Add permissions Router
