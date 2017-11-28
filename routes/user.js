@@ -27,6 +27,7 @@ var router  = Router();
  * @apiParam {String} user_role Role name ie loan_officer
  * @apiParam {String} default_branch Default Branch for User
  * @apiParam {String} role References to Role asigned to user
+ * @apiParam {Object} picture Account Picture _SUBMIT IN MULTIPART/FORM-DATA__
  *
  * @apiParamExample Request Example:
  *  {

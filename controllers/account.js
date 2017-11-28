@@ -16,6 +16,7 @@ const validator  = require('validator');
 
 const config             = require('../config');
 const CustomError        = require('../lib/custom-error');
+const googleBuckets      = require('../lib/google-buckets');
 
 const Account            = require('../models/account');
 
@@ -137,6 +138,84 @@ exports.update = function* updateAccount(next) {
   }
 
 };
+
+/**
+ * Update Account photo
+ *
+ * @desc Fetch a account with the given id from the database
+ *       and update their Photo
+ *
+ * @param {Function} next Middleware dispatcher
+ */
+exports.updatePhoto = function* updateAccountPhoto(next) {
+  debug(`updating photo for account: ${this.params.id}`);
+
+  let query = {
+    _id: this.params.id
+  };
+  let body = this.request.body;
+  let bodyKeys = Object.keys(body);
+  let isMultipart = (bodyKeys.indexOf('fields') !== -1) && (bodyKeys.indexOf('files') !== -1);
+
+  // If content is multipart reduce fields and files path
+  if(isMultipart) {
+    let _clone = {};
+
+    for(let key of bodyKeys) {
+      let props = body[key];
+      let propsKeys = Object.keys(props);
+
+      for(let prop of propsKeys) {
+        _clone[prop] = props[prop];
+      }
+    }
+
+    body = _clone;
+
+  }
+
+  let errors = [];
+
+  if(errors.length) {
+    return this.throw(new CustomError({
+      type: 'UPDATE_ACCOUNT_PHOTO_ERROR',
+      message: JSON.stringify(errors)
+    }));
+  }
+
+  try {
+    
+    if(body.picture) {
+      let filename  = body.first_name.trim().toUpperCase().split(/\s+/).join('_');
+      let id        = crypto.randomBytes(6).toString('hex');
+      let extname   = path.extname(body.picture.name);
+      let assetName = `${filename}_${id}${extname}`;
+
+      let url       = yield googleBuckets(body.picture.path, assetName);
+
+      body.picture = url;
+    }
+    let account = yield AccountDal.update(query, body);
+
+    yield LogDal.track({
+      event: 'account_photo_update',
+      user: this.state._user._id ,
+      message: `Update Photo for ${account.email}`,
+      diff: body
+    });
+
+    this.body = account;
+
+  } catch(ex) {
+    return this.throw(new CustomError({
+      type: 'UPDATE_ACCOUNT_PHOTO_ERROR',
+      message: ex.message
+    }));
+
+  }
+
+};
+
 
 /**
  * Get a collection of accounts by Pagination

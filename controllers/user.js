@@ -16,6 +16,7 @@ const validator  = require('validator');
 
 const config             = require('../config');
 const CustomError        = require('../lib/custom-error');
+const googleBuckets      = require('../lib/google-buckets');
 
 const UserDal            = require('../dal/user');
 const LogDal             = require('../dal/log');
@@ -38,34 +39,58 @@ exports.create = function* createUser(next) {
   debug('create user');
 
   let body = this.request.body;
+  let bodyKeys = Object.keys(body);
+  let isMultipart = (bodyKeys.indexOf('fields') !== -1) && (bodyKeys.indexOf('files') !== -1);
 
-  this.checkBody('username')
-      .notEmpty('Username is Empty');
-  this.checkBody('password')
-      .notEmpty('Password is Empty!!');
-  this.checkBody('role')
-      .notEmpty('Role Reference is Empty');
-  this.checkBody('first_name')
-      .notEmpty('First Name is Empty');
-  this.checkBody('last_name')
-      .notEmpty('Last Name is Empty')
-  this.checkBody('default_branch')
-      .notEmpty('Default Branch Reference is empty');
-  this.checkBody('user_role')
-      .notEmpty('User Role Name is Empty');
+  // If content is multipart reduce fields and files path
+  if(isMultipart) {
+    let _clone = {};
 
-  if(this.errors) {
+    for(let key of bodyKeys) {
+      let props = body[key];
+      let propsKeys = Object.keys(props);
+
+      for(let prop of propsKeys) {
+        _clone[prop] = props[prop];
+      }
+    }
+
+    body = _clone;
+
+  }
+
+  let errors = [];
+
+  if(!body.username) errors.push('Username is Empty');
+  if(!body.password) errors.push('Password is Empty');
+  if(!body.role  || !validator.isMongoId(body.role)) errors.push('Role Reference is Empty');
+  if(!body.first_name) errors.push('First Name is Empty');
+  if(!body.last_name) errors.push('Last Name is Empty');
+  if(!body.default_branch || !validator.isMongoId(body.default_branch)) errors.push('Default Branch is Invalid');
+  if(!body.user_role) errors.push('User Role is Empty');
+
+  if(errors.length) {
     return this.throw(new CustomError({
       type: 'USER_CREATION_ERROR',
-      message: JSON.stringify(this.errors)
+      message: JSON.stringify(errors)
     }));
   }
 
   try {
+    if(body.picture) {
+      let filename  = body.first_name.trim().toUpperCase().split(/\s+/).join('_');
+      let id        = crypto.randomBytes(6).toString('hex');
+      let extname   = path.extname(body.picture.name);
+      let assetName = `${filename}_${id}${extname}`;
+
+      let url       = yield googleBuckets(body.picture.path, assetName);
+
+      body.picture = url;
+    }
 
     let user = yield UserDal.get({ username: body.username });
 
-    if(user) {
+    if(user._id) {
       throw new Error('An User with those Credentials already exists');
 
     } else {
@@ -243,6 +268,8 @@ exports.update = function* updateUser(next) {
   }
 
 };
+
+
 
 /**
  * Get a collection of users by Pagination

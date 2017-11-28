@@ -225,6 +225,61 @@ router.get('/:id', acl(['*']), accountController.fetchOne);
  */
 router.put('/:id', acl(['*']), accountController.update);
 
+/**
+ * @api {put} /users/accounts/:id/pictures Update Account Picture
+ * @apiVersion 1.0.0
+ * @apiName UpdatePicture
+ * @apiGroup Account 
+ *
+ * @apiDescription Update a Account picture with the given id
+ *
+ * @apiParam {Object} picture Update Picture _SUBMIT IN MULTIPART/FORM-DATA_
+ *
+ * @apiParamExample Request example:
+ * {
+ *    picture: "<PICTURE-OBJECT>"
+ * }
+ *
+ * @apiSuccess {String} _id account id
+ * @apiSuccess {Object} user User Data Object
+ * @apiSuccess {String} picture Picture URL
+ * @apiSuccess {String} first_name First name
+ * @apiSuccess {String} last_name Last Name
+ * @apiSuccess {String} email Email Address
+ * @apiSuccess {String} phone Phone Number
+ * @apiSuccess {String} gender Gender "Male" or "Female"
+ * @apiSuccess {Boolean} multi_branch Multiple Branches 
+ * @apiSuccess {Object} default_branch Default Branch
+ * @apisuccess {Array} access_branches Accessible Branches for the Account
+ * @apiSuccess {Object} role Role for the Account with Permissions
+ *
+ * @apiSuccessExample Response Example:
+ *  {
+ *      _id : "556e1174a8952c9521286a60",
+ *      user : {
+ *	       _id : "556e1174a8952c9521286a60",
+ *         ...
+ *      },
+ *    	first_name: "Mary",
+ *    	last_name: "Jane",
+ *    	email: "mary.jane@gmail.com",
+ *    	phone: "095342345",
+ *      picture: "https://mfi.com/assets/account_5736573.png",
+ *      gender: "SELECT",
+ *      multi_branch: false,
+ *      default_branch: {
+ *	        _id : "556e1174a8952c9521286a60",
+ *          ...
+ *      },
+ *      access_branches: [],
+ *      role: {
+ *			_id : "556e1174a8952c9521286a60",
+ *          ...
+ *      }
+ *  }
+ */
+router.put('/:id/pictures', acl(['*']), accountController.updatePhoto);
+
 
 
 // Expose Account Router
