@@ -90,7 +90,7 @@ exports.create = function* createUser(next) {
 
     let user = yield UserDal.get({ username: body.username });
 
-    if(user._id) {
+    if(user) {
       throw new Error('An User with those Credentials already exists');
 
     } else {
