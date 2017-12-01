@@ -17,6 +17,7 @@ const validator  = require('validator');
 const config             = require('../config');
 const CustomError        = require('../lib/custom-error');
 const googleBuckets      = require('../lib/google-buckets');
+const checkPermissions   = require('../lib/permissions');
 
 const Account            = require('../models/account');
 
@@ -27,6 +28,7 @@ const LogDal             = require('../dal/log');
 const BranchDal          = require('../dal/branch');
 const RoleDal           = require('../dal/role');
 const PermissionDal      = require('../dal/permission');
+const TaskDal            = require('../dal/task');
 
 /**
  * Get a single account.
@@ -112,13 +114,45 @@ exports.updateStatus = function* updateAccount(next) {
 exports.update = function* updateAccount(next) {
   debug(`updating account: ${this.params.id}`);
 
+  let isPermitted = yield checkPermissions({ user: this.state._user._id }, 'UPDATE');
+  if(!isPermitted) {
+    return this.throw(new CustomError({
+      type: 'USER_UPDATE_ERROR',
+      message: "You Don't have enough permissions to complete this action"
+    }));
+  }
+
   let query = {
     _id: this.params.id
   };
   let body = this.request.body;
 
   try {
-    let account = yield AccountDal.update(query, body);
+    let account = yield AccountDal.get(query);
+    if(!account) {
+      throw new Error('Account Does Not Exist');
+    }
+
+    if(account.user.status === 'pending') {
+      account = yield AccountDal.update(query, body);
+
+    } else {
+      account = yield AccountDal.update(query, body);
+      
+      yield UserDal.update({ _id: account.user._id }, { status: 'pending' });
+
+
+      // Create Task
+      yield TaskDal.create({
+        task: `Approve Updated Account of ${account.first_name} ${account.last_name}`,
+        task_type: 'approve',
+        entity_ref: account._id,
+        entity_type: 'account',
+        created_by: this.state._user._id
+      })
+
+
+    }
 
     yield LogDal.track({
       event: 'account_update',

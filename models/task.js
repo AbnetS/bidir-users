@@ -12,10 +12,12 @@ var Schema = mongoose.Schema;
 var TaskSchema = new Schema({      
     entity_type: { type: String },
     entity_ref:  { type: Schema.Types.ObjectId },
-    account:     { type: Schema.Types.ObjectId, ref: 'Account', default: null },
+    user:     { type: Schema.Types.ObjectId, ref: 'User', default: null },
     task:        { type: String },
     task_type:   { type: String },
     status:      { type:String, enums:['pending', 'approved', 'cancelled']},
+    created_by:     { type: Schema.Types.ObjectId, ref: 'User' },
+    comment:        { type: String, default: '' },
     date_created:   { type: Date },
     last_modified:  { type: Date }
 });
@@ -55,7 +57,9 @@ TaskSchema.statics.whitelist = {
   status: 1,
   date_created: 1,
   last_modified: 1,
-  account: 1
+  user: 1,
+  created_by: 1,
+  comment:1 
 };
 
 

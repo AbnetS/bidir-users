@@ -17,6 +17,7 @@ const validator  = require('validator');
 const config             = require('../config');
 const CustomError        = require('../lib/custom-error');
 const googleBuckets      = require('../lib/google-buckets');
+const checkPermissions   = require('../lib/permissions');
 
 const UserDal            = require('../dal/user');
 const LogDal             = require('../dal/log');
@@ -37,6 +38,16 @@ const TaskDal           = require('../dal/task');
  */
 exports.create = function* createUser(next) {
   debug('create user');
+
+  let isPermitted = yield checkPermissions({ user: this.state._user._id }, 'CREATE');
+  if(!isPermitted) {
+    return this.throw(new CustomError({
+      type: 'USER_CREATION_ERROR',
+      message: "You Don't have enough permissions to complete this action"
+    }));
+  }
+
+  let canAuthorize = yield checkPermissions({ user: this.state._user._id }, 'AUTHORIZE');
 
   let body = this.request.body;
   let bodyKeys = Object.keys(body);
@@ -100,7 +111,7 @@ exports.create = function* createUser(next) {
       password: body.password,
       role: body.user_role,
       created_by: this.state._user.username,
-      status: 'pending'
+      status: canAuthorize ? 'active': 'pending'
     });
 
     body.user = user._id;
@@ -112,13 +123,16 @@ exports.create = function* createUser(next) {
     // Update User with Account
     user = yield UserDal.update({ _id: user._id }, { account: account._id });
 
-    // Create Task
-    yield TaskDal.create({
-      task: `Approve New Account of ${body.first_name} ${body.last_name}`,
-      task_type: 'approve',
-      entity_ref: account._id,
-      entity_type: 'account'
-    })
+   if(!canAuthorize) {
+       // Create Task
+      yield TaskDal.create({
+        task: `Approve New Account of ${body.first_name} ${body.last_name}`,
+        task_type: 'approve',
+        entity_ref: account._id,
+        entity_type: 'account',
+        created_by: this.state._user._id
+      })
+   }
     
     this.status = 201;
     this.body = user;
@@ -127,7 +141,7 @@ exports.create = function* createUser(next) {
 
 
   } catch(ex) {
-    this.throw(new CustomError({
+    return this.throw(new CustomError({
       type: 'USER_CREATION_ERROR',
       message: ex.message
     }));

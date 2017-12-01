@@ -22,6 +22,7 @@ const TaskDal            = require('../dal/task');
 const UserDal            = require('../dal/user');
 const AccountDal         = require('../dal/account');
 const ScreeningDal       = require('../dal/screening');
+const NotificationDal    = require('../dal/notification');
 
 /**
  * Get a single task.
@@ -83,54 +84,58 @@ exports.updateStatus = function* updateTask(next) {
     let canDelete = false;
     let canRead = false;
     let canModify = false;
+    let canCreate = false;
+    let canActivate = false;
+    let canDeactivate = false;
 
     for(let permission of account.role.permissions) {
       for(let operation of permission.operations) {
-        if(operation === 'Approve') canApprove = true;
-        if(operation === 'Authorize') canAuthorize = true;
-        if(operation === 'Delete') canDelete = true;
-        if(operation === 'Read') canRead = true;
-        if(operation === 'Modify') canModify = true;
+        if(operation === 'AUTHORIZE') canAuthorize = true;
+        if(operation === 'DELETE') canDelete = true;
+        if(operation === 'VIEW') canRead = true;
+        if(operation === 'UPDATE') canModify = true;
+        if(operation === 'CREATE') canCreate = true;
+        if(operation === 'ACTIVATE') canActivate = true;
+        if(operation === 'DEACTIVATE') canDeactivate = true;
       }
     }
 
-    if(body.status === 'cancelled' || body.status === 'pending') {
-      task = yield TaskDal.update(query, body);
+    task = yield TaskDal.get(query);
 
-    } else if(body.status === 'approved') {
-      task = yield TaskDal.get(query);
+    if(body.action === 'approved') {
+      if(!canAuthorize) throw new Error('You are not allowed to complete this action');
 
-      if(task.task_type === 'approve') {
-        if(!canApprove) throw new Error('You are not allowed to complete this action');
-
-        switch(task.entity_type) {
-          case 'account':
-            yield UserDal.update({ account: task.entity_ref }, { status: 'active '});
-            break;
-          case 'screening':
-            yield ScreeningDal.update({ _id: task.entity_ref }, { status: 'approved '});
-            break;
-        }
-      } else if(task.task_type === 'delete') {
-        if(!canDelete) throw new Error('You are not allowed to complete this action');
-
-        switch(task.entity_type) {
-          case 'account':
-            yield UserDal.update({ account: task.entity_ref }, { status: 'archived', archived: true });
-            yield AccountDal.update({ _id: task.entity_ref }, { archived: true });
-            break;
-        }
-      } else if(task.task_type === 'update') {
-        if(!canModify) throw new Error('You are not allowed to complete this action');
-
-        switch(task.entity_type) {
-          case 'account':
-            yield UserDal.update({ account: task.entity_ref }, { status: 'suspended' });
-            break;
-        }
+      switch(task.entity_type) {
+        case 'account':
+          let created = yield AccountDal.get({ _id: task_ref });
+          yield UserDal.update({ account: task.entity_ref }, { status: 'active '});
+          yield NotificationDal.create({
+            for: task.created_by,
+            message: `Account of ${created.first_name} ${created.last_name} has been approved`
+          });
+          task = yield TaskDal.update(query, { status: 'done', comment: body.comment });
+          break;
+        case 'screening':
+          yield ScreeningDal.update({ _id: task.entity_ref }, { status: 'approved '});
+          break;
       }
+    } else if(body.action === 'declined') {
+      if(!canAuthorize) throw new Error('You are not allowed to complete this action');
 
-      task = yield TaskDal.update(query, body);
+      switch(task.entity_type) {
+        case 'account':
+          let created = yield AccountDal.get({ _id: task_ref });
+          yield UserDal.update({ account: task.entity_ref }, { status: 'declined '});
+          yield NotificationDal.create({
+            for: task.created_by,
+            message: `New Account of ${created.first_name} ${created.last_name} has been declined. Review Task`
+          });
+          task = yield TaskDal.update(query, { comment: body.comment });
+          break;
+        case 'screening':
+          yield ScreeningDal.update({ _id: task.entity_ref }, { status: 'approved '});
+          break;
+      }
     }
 
     yield LogDal.track({

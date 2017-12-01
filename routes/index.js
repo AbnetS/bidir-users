@@ -11,6 +11,8 @@ const accountRouter      = require('./account');
 const userRouter  		 = require('./user');
 const permissionRouter   = require('./permission');
 const roleRouter  		 = require('./role');
+const taskRouter       = require('./task');
+const notificationRouter       = require('./notification');
 
 var appRouter = new Router();
 
@@ -34,6 +36,10 @@ composeRoute('users/accounts', accountRouter);
 composeRoute('users/permissions', permissionRouter);
 //Add roles Router
 composeRoute('users/roles', roleRouter);
+//Add tasks Router
+composeRoute('users/tasks', taskRouter);
+//Add Notifications Router
+composeRoute('users/notifications', notificationRouter);
 
 function composeRoute(endpoint, router){
   appRouter.use(`/${endpoint}`, router.routes(), router.allowedMethods());

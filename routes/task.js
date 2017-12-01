@@ -27,7 +27,8 @@ var router  = Router();
  * @apiSuccess {String} task Task Description
  * @apiSuccess {Array} task_type Task Type
  * @apiSuccess {String} status Task Status ie pending, cancelled or approved
- * @apiSuccess {String} [account] Account Assigned task
+ * @apiSuccess {String} [user] User Account Assigned task
+ * @apiSuccess {String} created_by Task Creator
  *
  * @apiSuccessExample Response Example:
  *  {
@@ -40,6 +41,7 @@ var router  = Router();
  *    	status: "approved",
  *      entity_type: "account",
  *    	entity_ref : "556e1174a8952c9521286a60",
+ *      created_by : "556e1174a8952c9521286a60",
  *      account: null
  *    }]
  *  }
@@ -71,6 +73,7 @@ router.get('/paginate', acl(['*']), taskController.fetchAllByPagination);
  *    entity_type: "account",
  *    entity_ref : "556e1174a8952c9521286a60",
  *    account : "556e1174a8952c9521286a60",
+ *      created_by : "556e1174a8952c9521286a60",
  *  }
  *
  */
@@ -85,11 +88,13 @@ router.get('/:id', acl(['*']), taskController.fetchOne);
  *
  * @apiDescription Update a task status with the given id
  *
- * @apiParam {String} status Update Status ie cancelled, approved or pending
+ * @apiParam {String} status Update Status ie declined, approved or pending
+ * @apiParam {String} comment Comment for action
  *
  * @apiParamExample Request example:
  * {
- *    status: "approved"
+ *    action: "approved",
+ *    comment: "Comment for task"
  * }
  *
  * @apiSuccess {String} _id task id
@@ -105,10 +110,11 @@ router.get('/:id', acl(['*']), taskController.fetchOne);
  *    	_id : "556e1174a8952c9521286a60",
  *    task: "Account Approval for new account of John Doe",
  *    task_type: "account_creation_approval",
- *    status: "approved",
+ *    status: "done",
  *    entity_type: "account",
  *    entity_ref : "556e1174a8952c9521286a60",
  *    account : "556e1174a8952c9521286a60",
+ *    created_by : "556e1174a8952c9521286a60",
  *  }
  */
 router.put('/:id/status', acl(['*']), taskController.updateStatus);
