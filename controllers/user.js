@@ -40,6 +40,26 @@ exports.create = function* createUser(next) {
   debug('create user');
 
   let isSuper = false;
+  let body = this.request.body;
+  let bodyKeys = Object.keys(body);
+  let isMultipart = (bodyKeys.indexOf('fields') !== -1) && (bodyKeys.indexOf('files') !== -1);
+
+  // If content is multipart reduce fields and files path
+  if(isMultipart) {
+    let _clone = {};
+
+    for(let key of bodyKeys) {
+      let props = body[key];
+      let propsKeys = Object.keys(props);
+
+      for(let prop of propsKeys) {
+        _clone[prop] = props[prop];
+      }
+    }
+
+    body = _clone;
+
+  }
 
   if(this.state._user.realm === 'super') {
       isSuper = true;
@@ -61,27 +81,6 @@ exports.create = function* createUser(next) {
   }
   
   let canAuthorize = yield checkPermissions({ user: this.state._user._id }, 'AUTHORIZE');
-
-  let body = this.request.body;
-  let bodyKeys = Object.keys(body);
-  let isMultipart = (bodyKeys.indexOf('fields') !== -1) && (bodyKeys.indexOf('files') !== -1);
-
-  // If content is multipart reduce fields and files path
-  if(isMultipart) {
-    let _clone = {};
-
-    for(let key of bodyKeys) {
-      let props = body[key];
-      let propsKeys = Object.keys(props);
-
-      for(let prop of propsKeys) {
-        _clone[prop] = props[prop];
-      }
-    }
-
-    body = _clone;
-
-  }
 
   let errors = [];
 
