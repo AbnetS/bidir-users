@@ -86,11 +86,25 @@ exports.create = function* createUser(next) {
   let errors = [];
 
   if(!body.username) errors.push('Username is Empty');
-  if(!body.password) errors.push('Password is Empty');
-  if(!body.role  || !validator.isMongoId(body.role)) errors.push('Role Reference is Empty');
+  if(!body.password) {
+    errors.push('Password is Empty');
+  } else {
+     if(!validator.isLength(body.password, {min:6})) errors.push('Password Must be at least 6 characters!!');
+  }
+ 
+  if(!body.role) {
+    errors.push('Role Reference is Empty');
+  } else {
+    if(!validator.isMongoId(body.role)) errors.push('Role Reference is not a Valid Mongo ID');
+  }
+  
   if(!body.first_name) errors.push('First Name is Empty');
   if(!body.last_name) errors.push('Last Name is Empty');
-  if(!body.default_branch || !validator.isMongoId(body.default_branch)) errors.push('Default Branch is Invalid');
+  if(!body.default_branch) {
+    errors.push('Default Branch is Invalid');
+  } else {
+    if(!validator.isMongoId(body.default_branch)) errors.push('Default Branch Reference is not a Valid Mongo ID');
+  }
   if(!body.user_role) errors.push('User Role is Empty');
 
   if(errors.length) {
