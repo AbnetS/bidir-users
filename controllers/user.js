@@ -138,7 +138,7 @@ exports.create = function* createUser(next) {
       password: body.password,
       role: body.user_role,
       created_by: this.state._user.username,
-      status: isSuper ? 'active'  ? (canAuthorize ? 'active': 'pending')
+      status: isSuper ? 'active'  : (canAuthorize ? 'active': 'pending')
     });
 
     body.user = user._id;
