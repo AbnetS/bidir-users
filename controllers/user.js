@@ -42,6 +42,7 @@ exports.create = function* createUser(next) {
   let isSuper = false;
   let body = this.request.body;
   let bodyKeys = Object.keys(body);
+  let canAuthorize = false;
   let isMultipart = (bodyKeys.indexOf('fields') !== -1) && (bodyKeys.indexOf('files') !== -1);
 
   // If content is multipart reduce fields and files path
@@ -77,10 +78,10 @@ exports.create = function* createUser(next) {
         message: "You Don't have enough permissions to complete this action"
       }));
     }
-
+    canAuthorize = yield checkPermissions({ user: this.state._user._id }, 'AUTHORIZE');
   }
   
-  let canAuthorize = yield checkPermissions({ user: this.state._user._id }, 'AUTHORIZE');
+  
 
   let errors = [];
 
