@@ -64,12 +64,6 @@ exports.create = function* createUser(next) {
 
   if(this.state._user.realm === 'super') {
       isSuper = true;
-      if(body.user_role !== 'admin') {
-        return this.throw(new CustomError({
-          type: 'USER_CREATION_ERROR',
-          message: "Super Admin Can Only Create An Account With 'admin' role Type"
-        }));
-      }
   } else {
     let isPermitted = yield checkPermissions({ user: this.state._user._id }, 'CREATE');
     if(!isPermitted) {
@@ -150,7 +144,7 @@ exports.create = function* createUser(next) {
     // Update User with Account
     user = yield UserDal.update({ _id: user._id }, { account: account._id });
 
-   if(!canAuthorize || !isSuper) {
+   if(!isSuper || !canAuthorize) {
        // Create Task
       yield TaskDal.create({
         task: `Approve New Account of ${body.first_name} ${body.last_name}`,
