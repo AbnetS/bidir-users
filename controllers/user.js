@@ -39,14 +39,27 @@ const TaskDal           = require('../dal/task');
 exports.create = function* createUser(next) {
   debug('create user');
 
-  let isPermitted = yield checkPermissions({ user: this.state._user._id }, 'CREATE');
-  if(!isPermitted) {
-    return this.throw(new CustomError({
-      type: 'USER_CREATION_ERROR',
-      message: "You Don't have enough permissions to complete this action"
-    }));
-  }
+  let isSuper = false;
 
+  if(this.state._user.realm === 'super') {
+      isSuper = true;
+      if(body.user_role !== 'admin') {
+        return this.throw(new CustomError({
+          type: 'USER_CREATION_ERROR',
+          message: "Super Admin Can Only Create An Account With 'admin' role Type"
+        }));
+      }
+  } else {
+    let isPermitted = yield checkPermissions({ user: this.state._user._id }, 'CREATE');
+    if(!isPermitted) {
+      return this.throw(new CustomError({
+        type: 'USER_CREATION_ERROR',
+        message: "You Don't have enough permissions to complete this action"
+      }));
+    }
+
+  }
+  
   let canAuthorize = yield checkPermissions({ user: this.state._user._id }, 'AUTHORIZE');
 
   let body = this.request.body;
@@ -111,7 +124,7 @@ exports.create = function* createUser(next) {
       password: body.password,
       role: body.user_role,
       created_by: this.state._user.username,
-      status: canAuthorize ? 'active': 'pending'
+      status: isSuper ? 'active'  ? (canAuthorize ? 'active': 'pending')
     });
 
     body.user = user._id;
@@ -123,7 +136,7 @@ exports.create = function* createUser(next) {
     // Update User with Account
     user = yield UserDal.update({ _id: user._id }, { account: account._id });
 
-   if(!canAuthorize) {
+   if(!canAuthorize || !isSuper) {
        // Create Task
       yield TaskDal.create({
         task: `Approve New Account of ${body.first_name} ${body.last_name}`,
@@ -131,7 +144,7 @@ exports.create = function* createUser(next) {
         entity_ref: account._id,
         entity_type: 'account',
         created_by: this.state._user._id
-      })
+      });
    }
     
     this.status = 201;

@@ -7,7 +7,7 @@ module.exports = {
 		first_name: 'Super',
 		last_name: 'Admin',
 		password: 'mfipassword',
-		role: 'admin',
-		realm: 'super'
+		role: 'super',
+		realm: 'admin'
 	}]
 };
