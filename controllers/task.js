@@ -89,15 +89,15 @@ exports.updateStatus = function* updateTask(next) {
     let canDeactivate = false;
 
     for(let permission of account.role.permissions) {
-      for(let operation of permission.operations) {
-        if(operation === 'AUTHORIZE') canAuthorize = true;
-        if(operation === 'DELETE') canDelete = true;
-        if(operation === 'VIEW') canRead = true;
-        if(operation === 'UPDATE') canModify = true;
-        if(operation === 'CREATE') canCreate = true;
-        if(operation === 'ACTIVATE') canActivate = true;
-        if(operation === 'DEACTIVATE') canDeactivate = true;
-      }
+      let operation = permission.operation;
+
+      if(operation === 'AUTHORIZE') canAuthorize = true;
+      if(operation === 'DELETE') canDelete = true;
+      if(operation === 'VIEW') canRead = true;
+      if(operation === 'UPDATE') canModify = true;
+      if(operation === 'CREATE') canCreate = true;
+      if(operation === 'ACTIVATE') canActivate = true;
+      if(operation === 'DEACTIVATE') canDeactivate = true;
     }
 
     task = yield TaskDal.get(query);
@@ -244,4 +244,44 @@ exports.fetchAllByPagination = function* fetchAllTasks(next) {
       message: ex.message
     }));
   }
+};
+
+
+/**
+ * Remove a single Task.
+ *
+ * @desc Fetch a task with the given id from the database
+ *       and Remove their data
+ *
+ * @param {Function} next Middleware dispatcher
+ */
+exports.remove = function* removeTask(next) {
+  debug(`removing task: ${this.params.id}`);
+
+  let query = {
+    _id: this.params.id
+  };
+
+  try {
+    let task = yield TaskDal.delete(query);
+    if(!task) {
+      throw new Error('Task Does Not Exist!');
+    }
+
+    yield LogDal.track({
+      event: 'task_delete',
+      permission: this.state._user._id ,
+      message: `Delete Info for ${task._id}`
+    });
+
+    this.body = task;
+
+  } catch(ex) {
+    return this.throw(new CustomError({
+      type: 'REMOVE_TASK_ERROR',
+      message: ex.message
+    }));
+
+  }
+
 };

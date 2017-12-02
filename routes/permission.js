@@ -151,5 +151,34 @@ router.get('/:id', acl(['*']), permissionController.fetchOne);
  */
 router.put('/:id', acl(['*']), permissionController.update);
 
+/**
+ * @api {delete} /users/permissions/:id Delete Permission
+ * @apiVersion 1.0.0
+ * @apiName DeletePermission
+ * @apiGroup Permission 
+ *
+ * @apiDescription Update a permission with the given id
+ *
+ *
+ * @apiSuccess {String} _id permission id
+ * @apiSuccess {String} name Permission Name
+ * @apiSuccess {String} description Permission Description
+ * @apiSuccess {String} module Module
+ * @apiSuccess {Array} endpoints Array of Endpoints
+ * @apiSuccess {Array} operations Operations ie READ, UPDATE, DELETE, CREATE
+ *
+ * @apiSuccessExample Response Example:
+ *  {
+ *    _id : "556e1174a8952c9521286a60",
+ *    name: "Loan Officer",
+ *    description: "Loan Officer Loans Module Permissions",
+ *    module: "LOAN_APPLICATION",
+ *    operations: ['CREATE', 'UPDATE'],
+ *    endpoints: []
+ *  }
+ */
+router.delete('/:id', acl(['*']), permissionController.remove);
+
+
 // Expose Permission Router
 module.exports = router;

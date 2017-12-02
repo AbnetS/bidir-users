@@ -361,44 +361,30 @@ exports.remove = function* removeUser(next) {
 
   try {
     let user = yield UserDal.get(query);
-    if(user.archived) {
+    if(!user) {
       throw new Error('User is not Available');
     }
-    let account = yield AccountDal.get({ user: user._id });
 
-    if(user.status === 'pending') {
-      yield UserDal.update(query, {
-        status: 'archived',
-        archived: true
-      });
-
-      yield AccountDal.update({ user: user._id },{
-        archived: true
-      })
-    } else if(user.status === 'approved') {
-      // Create Task
-      yield TaskDal.create({
-        task: `Remove  Account of ${account.first_name} ${account.last_name}`,
-        task_type: 'delete',
-        entity_ref: account._id,
-        entity_type: 'account'
-      })
+    if(user.realm === 'super') {
+      throw new Error('Action Denied for Super Admin');
     }
 
-    
+    let account = yield AccountDal.get({ user: user._id });
+
+    yield UserDal.delete(query);
+    yield AccountDal.delete({ _id: user.account._id });
 
     yield LogDal.track({
-      event: 'user_update',
+      event: 'user_remove',
       user: this.state._user._id ,
-      message: `Update Info for ${user.username}`,
-      diff: body
+      message: `Remove Info for ${user.username}`
     });
 
     this.body = user;
 
   } catch(ex) {
     return this.throw(new CustomError({
-      type: 'UPDATE_USER_ERROR',
+      type: 'REMOVE_USER_ERROR',
       message: ex.message
     }));
 

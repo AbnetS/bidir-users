@@ -147,5 +147,34 @@ router.get('/:id', acl(['*']), roleController.fetchOne);
  */
 router.put('/:id', acl(['*']), roleController.update);
 
+/**
+ * @api {delete} /users/roles/:id Delete Role
+ * @apiVersion 1.0.0
+ * @apiName DeleteRole
+ * @apiGroup Role 
+ *
+ * @apiDescription Delete a role with the given id
+ *
+ *
+ * @apiSuccess {String} _id role id
+ * @apiSuccess {String} name Role Name
+ * @apiSuccess {String} description Role Description
+ * @apiSuccess {Array} permissions Permissions References
+ *
+ * @apiSuccessExample Response Example:
+ *  {
+ *    _id : "556e1174a8952c9521286a60",
+ *    name: "Loan Officer",
+ *    description: "Loan Officer Role",
+ *    permissions: [{
+ *       _id : "556e1174a8952c9521286a60",
+ *       name: "Loan Application"
+ *       ...
+ *    }]
+ *  }
+ */
+router.delete('/:id', acl(['*']), roleController.remove);
+
+
 // Expose Role Router
 module.exports = router;

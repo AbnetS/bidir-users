@@ -215,3 +215,43 @@ exports.fetchAllByPagination = function* fetchAllPermissions(next) {
     }));
   }
 };
+
+
+/**
+ * Remove a single permission.
+ *
+ * @desc Fetch a permission with the given id from the database
+ *       and Remove their data
+ *
+ * @param {Function} next Middleware dispatcher
+ */
+exports.remove = function* removePermission(next) {
+  debug(`removing permission: ${this.params.id}`);
+
+  let query = {
+    _id: this.params.id
+  };
+
+  try {
+    let permission = yield PermissionDal.delete(query);
+    if(!permission) {
+      throw new Error('Permission Does Not Exist!');
+    }
+
+    yield LogDal.track({
+      event: 'permission_delete',
+      permission: this.state._user._id ,
+      message: `Delete Info for ${permission._id}`
+    });
+
+    this.body = permission;
+
+  } catch(ex) {
+    return this.throw(new CustomError({
+      type: 'REMOVE_PERMISSION_ERROR',
+      message: ex.message
+    }));
+
+  }
+
+};

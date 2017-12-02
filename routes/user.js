@@ -212,5 +212,48 @@ router.get('/:id', acl(['*']), userController.fetchOne);
  */
 router.put('/:id', acl(['*']), userController.update);
 
+/**
+ * @api {delete} /users/:id Delete User User
+ * @apiVersion 1.0.0
+ * @apiName Delete
+ * @apiGroup User 
+ *
+ * @apiDescription Delete a User user with the given id
+ *
+ *
+ * @apiSuccess {String} _id user id
+ * @apiSuccess {Object} account Account Data
+ * @apiSuccess {Boolean} is_active Activeness
+ * @apiSuccess {String} role User Role
+ * @apiSuccess {String} realm User Realm
+ * @apiSuccess {String} last_login Last Login Time Stamp
+ *
+ * @apiSuccessExample Response Example:
+ *  {
+ *    _id : "556e1174a8952c9521286a60"
+ *    username: "mary.jane@gmail.com",
+ *    last_login: '2017-03-16T10:50:52.305Z',
+ *    role: "loan_officer",
+ *    realm: "user",
+ *    account: {
+ *      _id : "556e1174a8952c9521286a60",
+ *      user : "556e1174a8952c9521286a60",
+ *      first_name: "Mary",
+ *      last_name: "Jane",
+ *      email: "mary.jane@gmail.com",
+ *      phone: "095342345",
+ *      picture: "https://mfi.com/assets/account_5736573.png",
+ *      gender: "SELECT",
+ *      multi_branch: false,
+ *      default_branch: "556e1174a8952c9521286a60",
+ *      access_branches: [],
+ *      roles: [556e1174a8952c9521286a60],
+ *      ...
+ *    }
+ *  }
+ */
+router.delete('/:id', acl(['*']), userController.remove);
+
+
 // Expose User Router
 module.exports = router;

@@ -215,3 +215,42 @@ exports.fetchAllByPagination = function* fetchAllRoles(next) {
     }));
   }
 };
+
+/**
+ * Remove a single Role.
+ *
+ * @desc Fetch a role with the given id from the database
+ *       and Remove their data
+ *
+ * @param {Function} next Middleware dispatcher
+ */
+exports.remove = function* removeRole(next) {
+  debug(`removing role: ${this.params.id}`);
+
+  let query = {
+    _id: this.params.id
+  };
+
+  try {
+    let role = yield RoleDal.delete(query);
+    if(!role) {
+      throw new Error('Role Does Not Exist!');
+    }
+
+    yield LogDal.track({
+      event: 'role_delete',
+      permission: this.state._user._id ,
+      message: `Delete Info for ${role._id}`
+    });
+
+    this.body = role;
+
+  } catch(ex) {
+    return this.throw(new CustomError({
+      type: 'REMOVE_ROLE_ERROR',
+      message: ex.message
+    }));
+
+  }
+
+};
