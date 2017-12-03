@@ -109,7 +109,7 @@ exports.updateStatus = function* updateTask(next) {
 
       switch(task.entity_type) {
         case 'account':
-          let created = yield AccountDal.get({ _id: task_ref });
+          let created = yield AccountDal.get({ _id: task.entity_ref });
           yield UserDal.update({ account: task.entity_ref }, { status: 'active '});
           yield NotificationDal.create({
             for: task.created_by,
@@ -126,7 +126,7 @@ exports.updateStatus = function* updateTask(next) {
 
       switch(task.entity_type) {
         case 'account':
-          let created = yield AccountDal.get({ _id: task_ref });
+          let created = yield AccountDal.get({ _id: task.entity_ref });
           yield UserDal.update({ account: task.entity_ref }, { status: 'declined '});
           yield NotificationDal.create({
             for: task.created_by,
