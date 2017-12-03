@@ -120,7 +120,7 @@ router.post('/create', acl('*'), userController.create);
  *    }]
  *  }
  */
-router.get('/paginate', acl(['admin']), userController.fetchAllByPagination);
+router.get('/paginate', acl(['*']), userController.fetchAllByPagination);
 
 /**
  * @api {get} /users/:id Get User User

@@ -222,18 +222,6 @@ exports.fetchAllByPagination = function* fetchAllTasks(next) {
 
   try {
     let account = yield AccountDal.get({ user: this.state._user._id });
-    let operations = [];
-
-    for(let permission of account.role.permissions) {
-      for(let operation of permission.operations) {
-        operations.push(operation.toLowerCase());
-      }
-    }
-
-     query = {
-        account: { $in: [null, account._id ]},
-        task_type: { $in: [operations] }
-      }
 
     let tasks = yield TaskDal.getCollectionByPagination(query, opts);
 
