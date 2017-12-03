@@ -222,7 +222,7 @@ exports.fetchAllByPagination = function* fetchAllTasks(next) {
     sort: sort
   };
 
-  let isPermitted = yield checkPermissions({ user: this.state._user._id }, 'VIEW');
+  let isPermitted = yield checkPermissions({ user: this.state._user._id }, 'AUTHORIZE');
   if(!isPermitted) {
     return this.throw(new CustomError({
       type: 'USER_CREATION_ERROR',
