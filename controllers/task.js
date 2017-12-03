@@ -222,12 +222,18 @@ exports.fetchAllByPagination = function* fetchAllTasks(next) {
     sort: sort
   };
 
-  let isPermitted = yield checkPermissions({ user: this.state._user._id }, 'AUTHORIZE');
-  if(!isPermitted) {
-    return this.throw(new CustomError({
-      type: 'USER_CREATION_ERROR',
-      message: "You Don't have enough permissions to complete this action"
-    }));
+  let isSuper;
+
+  if(this.state._user.realm === 'super' || this.state._user.role === 'super') {
+      isSuper = true;
+  } else {
+    let isPermitted = yield checkPermissions({ user: this.state._user._id }, 'AUTHORIZE');
+    if(!isPermitted) {
+      return this.throw(new CustomError({
+        type: 'TASKS_COLLECTION_ERROR',
+        message: "You Don't have enough permissions to complete this action"
+      }));
+    }
   }
 
   try {

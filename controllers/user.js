@@ -335,13 +335,19 @@ exports.fetchAllByPagination = function* fetchAllUsers(next) {
     limit: +limit,
     sort: sort
   };
-  
-  let isPermitted = yield checkPermissions({ user: this.state._user._id }, 'VIEW');
-  if(!isPermitted) {
-    return this.throw(new CustomError({
-      type: 'USER_CREATION_ERROR',
-      message: "You Don't have enough permissions to complete this action"
-    }));
+
+  let isSuper;
+
+  if(this.state._user.realm === 'super' || this.state._user.role === 'super') {
+      isSuper = true;
+  } else {
+    let isPermitted = yield checkPermissions({ user: this.state._user._id }, 'VIEW');
+    if(!isPermitted) {
+      return this.throw(new CustomError({
+        type: 'USERS_COLLECTION_ERROR',
+        message: "You Don't have enough permissions to complete this action"
+      }));
+    }
   }
 
   try {
@@ -350,7 +356,7 @@ exports.fetchAllByPagination = function* fetchAllUsers(next) {
     this.body = users;
   } catch(ex) {
     return this.throw(new CustomError({
-      type: 'FETCH_PAGINATED_USERS_COLLECTION_ERROR',
+      type: 'USERS_COLLECTION_ERROR',
       message: ex.message
     }));
   }
