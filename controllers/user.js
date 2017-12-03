@@ -62,7 +62,7 @@ exports.create = function* createUser(next) {
 
   }
 
-  if(this.state._user.realm === 'super') {
+  if(this.state._user.realm === 'super' || this.state._user.role === 'super') {
       isSuper = true;
   } else {
     let isPermitted = yield checkPermissions({ user: this.state._user._id }, 'CREATE');
@@ -99,7 +99,6 @@ exports.create = function* createUser(next) {
   } else {
     if(!validator.isMongoId(body.default_branch)) errors.push('Default Branch Reference is not a Valid Mongo ID');
   }
-  if(!body.user_role) errors.push('User Role is Empty');
 
   if(errors.length) {
     return this.throw(new CustomError({
@@ -126,6 +125,11 @@ exports.create = function* createUser(next) {
       throw new Error('An User with those Credentials already exists');
 
     } else {
+    // set user role from role name
+    let role = yield RoleDal.get({ _id: body.role });
+
+    body.user_role = role ? role.name.split(/\s+/).join('_') : 'admin';
+
     // Create User 
     user = yield UserDal.create({
       username: body.username,
@@ -136,7 +140,6 @@ exports.create = function* createUser(next) {
     });
 
     body.user = user._id;
-    delete body.role;
 
     // Create Account Type
     let account = yield AccountDal.create(body);
