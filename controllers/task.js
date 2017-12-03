@@ -104,7 +104,7 @@ exports.updateStatus = function* updateTask(next) {
 
     task = yield TaskDal.get(query);
 
-    if(body.action === 'approved') {
+    if(body.status === 'approved') {
       if(!canAuthorize) throw new Error('You are not allowed to complete this action');
 
       switch(task.entity_type) {
@@ -121,7 +121,7 @@ exports.updateStatus = function* updateTask(next) {
           yield ScreeningDal.update({ _id: task.entity_ref }, { status: 'approved '});
           break;
       }
-    } else if(body.action === 'declined') {
+    } else if(body.status === 'declined') {
       if(!canAuthorize) throw new Error('You are not allowed to complete this action');
 
       switch(task.entity_type) {

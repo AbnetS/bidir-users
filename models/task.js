@@ -15,7 +15,7 @@ var TaskSchema = new Schema({
     user:     { type: Schema.Types.ObjectId, ref: 'User', default: null },
     task:        { type: String },
     task_type:   { type: String },
-    status:      { type:String, enums:['pending', 'approved', 'cancelled']},
+    status:      { type:String, enums:['pending', 'approved', 'declined'], default: 'pending'},
     created_by:     { type: Schema.Types.ObjectId, ref: 'User' },
     comment:        { type: String, default: '' },
     date_created:   { type: Date },
