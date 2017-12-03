@@ -16,6 +16,8 @@ const validator  = require('validator');
 
 const config             = require('../config');
 const CustomError        = require('../lib/custom-error');
+const checkPermissions   = require('../lib/permissions');
+
 
 const LogDal             = require('../dal/log');
 const TaskDal            = require('../dal/task');
@@ -219,6 +221,14 @@ exports.fetchAllByPagination = function* fetchAllTasks(next) {
     limit: +limit,
     sort: sort
   };
+
+  let isPermitted = yield checkPermissions({ user: this.state._user._id }, 'VIEW');
+  if(!isPermitted) {
+    return this.throw(new CustomError({
+      type: 'USER_CREATION_ERROR',
+      message: "You Don't have enough permissions to complete this action"
+    }));
+  }
 
   try {
     let account = yield AccountDal.get({ user: this.state._user._id });

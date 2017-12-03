@@ -335,6 +335,14 @@ exports.fetchAllByPagination = function* fetchAllUsers(next) {
     limit: +limit,
     sort: sort
   };
+  
+  let isPermitted = yield checkPermissions({ user: this.state._user._id }, 'VIEW');
+  if(!isPermitted) {
+    return this.throw(new CustomError({
+      type: 'USER_CREATION_ERROR',
+      message: "You Don't have enough permissions to complete this action"
+    }));
+  }
 
   try {
     let users = yield UserDal.getCollectionByPagination(query, opts);
