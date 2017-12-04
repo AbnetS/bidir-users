@@ -287,11 +287,14 @@ exports.update = function* updateUser(next) {
 
   try {
     let user = yield UserDal.update(query, body);
+    if(!user || !user._id) {
+      throw new Error('User Does Not Exist!!')
+    }
 
     yield LogDal.track({
       event: 'user_update',
       user: this.state._user._id ,
-      message: `Update Info for ${user.email}`,
+      message: `Update Info for ${user._id}`,
       diff: body
     });
 
