@@ -42,7 +42,6 @@ exports.create = function* createUser(next) {
   let isSuper = false;
   let body = this.request.body;
   let bodyKeys = Object.keys(body);
-  let canAuthorize = false;
   let isMultipart = (bodyKeys.indexOf('fields') !== -1) && (bodyKeys.indexOf('files') !== -1);
 
   // If content is multipart reduce fields and files path
@@ -62,21 +61,15 @@ exports.create = function* createUser(next) {
 
   }
 
-  if(this.state._user.realm === 'super' || this.state._user.role === 'super') {
-      isSuper = true;
-  } else {
-    let isPermitted = yield checkPermissions({ user: this.state._user._id }, 'CREATE');
-    if(!isPermitted) {
+
+  let isPermitted = yield checkPermissions.isPermitted(this.state._user, 'manage_users_create');
+  if(!isPermitted) {
       return this.throw(new CustomError({
         type: 'USER_CREATION_ERROR',
         message: "You Don't have enough permissions to complete this action"
       }));
-    }
-    canAuthorize = yield checkPermissions({ user: this.state._user._id }, 'AUTHORIZE');
   }
   
-  
-
   let errors = [];
 
   if(!body.username) errors.push('Username is Empty');
@@ -136,7 +129,7 @@ exports.create = function* createUser(next) {
       password: body.password,
       role: body.user_role,
       created_by: this.state._user.username,
-      status: isSuper ? 'active'  : (canAuthorize ? 'active': 'pending')
+      status: 'active'
     });
 
     body.user = user._id;
@@ -146,17 +139,6 @@ exports.create = function* createUser(next) {
 
     // Update User with Account
     user = yield UserDal.update({ _id: user._id }, { account: account._id });
-
-   if(!isSuper || !canAuthorize) {
-       // Create Task
-      yield TaskDal.create({
-        task: `Approve New Account of ${body.first_name} ${body.last_name}`,
-        task_type: 'approve',
-        entity_ref: account._id,
-        entity_type: 'account',
-        created_by: this.state._user._id
-      });
-   }
     
     this.status = 201;
     this.body = user;
@@ -285,6 +267,14 @@ exports.update = function* updateUser(next) {
   };
   let body = this.request.body;
 
+  let isPermitted = yield checkPermissions.isPermitted(this.state._user, 'manage_users_update');
+  if(!isPermitted) {
+    return this.throw(new CustomError({
+      type: 'USERS_COLLECTION_ERROR',
+      message: "You Don't have enough permissions to complete this action"
+    }));
+  }
+
   try {
     let user = yield UserDal.update(query, body);
     if(!user || !user._id) {
@@ -339,24 +329,20 @@ exports.fetchAllByPagination = function* fetchAllUsers(next) {
     sort: sort
   };
 
-  let isSuper;
-
-  if(this.state._user.realm === 'super' || this.state._user.role === 'super') {
-      isSuper = true;
-  } else {
-    let isPermitted = yield checkPermissions({ user: this.state._user._id }, 'VIEW');
-    if(!isPermitted) {
-      return this.throw(new CustomError({
-        type: 'USERS_COLLECTION_ERROR',
-        message: "You Don't have enough permissions to complete this action"
-      }));
-    }
+  let isPermitted = yield checkPermissions.isPermitted(this.state._user, 'manage_users_view');
+  if(!isPermitted) {
+    return this.throw(new CustomError({
+      type: 'USERS_COLLECTION_ERROR',
+      message: "You Don't have enough permissions to complete this action"
+    }));
   }
 
   try {
+    
     let users = yield UserDal.getCollectionByPagination(query, opts);
 
     this.body = users;
+
   } catch(ex) {
     return this.throw(new CustomError({
       type: 'USERS_COLLECTION_ERROR',

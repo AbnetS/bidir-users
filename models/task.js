@@ -12,7 +12,7 @@ var Schema = mongoose.Schema;
 var TaskSchema = new Schema({      
     entity_type: { type: String },
     entity_ref:  { type: Schema.Types.ObjectId },
-    user:     { type: Schema.Types.ObjectId, ref: 'User', default: null },
+    user:        { type: Schema.Types.ObjectId, ref: 'User', default: null },
     task:        { type: String },
     task_type:   { type: String },
     status:      { type:String, enums:['pending', 'approved', 'declined'], default: 'pending'},

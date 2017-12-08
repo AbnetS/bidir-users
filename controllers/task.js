@@ -89,6 +89,7 @@ exports.updateStatus = function* updateTask(next) {
     let canCreate = false;
     let canActivate = false;
     let canDeactivate = false;
+    let canArchive = false;
 
     for(let permission of account.role.permissions) {
       let operation = permission.operation;
@@ -100,6 +101,7 @@ exports.updateStatus = function* updateTask(next) {
       if(operation === 'CREATE') canCreate = true;
       if(operation === 'ACTIVATE') canActivate = true;
       if(operation === 'DEACTIVATE') canDeactivate = true;
+      if(operation === 'ARCHIVE') canArchive = true;
     }
 
     task = yield TaskDal.get(query);
@@ -222,29 +224,27 @@ exports.fetchAllByPagination = function* fetchAllTasks(next) {
     sort: sort
   };
 
-  let isSuper;
-
-  if(this.state._user.realm === 'super' || this.state._user.role === 'super') {
-      isSuper = true;
-  } else {
-    let isPermitted = yield checkPermissions({ user: this.state._user._id }, 'AUTHORIZE');
-    if(!isPermitted) {
-      return this.throw(new CustomError({
-        type: 'TASKS_COLLECTION_ERROR',
-        message: "You Don't have enough permissions to complete this action"
-      }));
-    }
-  }
+  let hasPermission = yield checkPermissions.hasPermission(this.state._user, 'AUTHORIZE');
 
   try {
-    let account = yield AccountDal.get({ user: this.state._user._id });
+
+    if(hasPermission) {
+      query = {
+        user: { $in: [null, this.state._user._id ] }
+      };
+    } else {
+      query = {
+        user: this.state._user._id
+      };
+    }
 
     let tasks = yield TaskDal.getCollectionByPagination(query, opts);
 
     this.body = tasks;
+
   } catch(ex) {
     return this.throw(new CustomError({
-      type: 'FETCH_PAGINATED_TASKS_COLLECTION_ERROR',
+      type: 'TASKS_COLLECTION_ERROR',
       message: ex.message
     }));
   }

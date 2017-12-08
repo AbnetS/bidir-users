@@ -114,10 +114,10 @@ exports.updateStatus = function* updateAccount(next) {
 exports.update = function* updateAccount(next) {
   debug(`updating account: ${this.params.id}`);
 
-  let isPermitted = yield checkPermissions({ user: this.state._user._id }, 'UPDATE');
+  let isPermitted = yield checkPermissions.isPermitted(this.state._user, 'manage_users_update');
   if(!isPermitted) {
     return this.throw(new CustomError({
-      type: 'USER_UPDATE_ERROR',
+      type: 'ACCOUNT_UPDATE_ERROR',
       message: "You Don't have enough permissions to complete this action"
     }));
   }
@@ -133,26 +133,7 @@ exports.update = function* updateAccount(next) {
       throw new Error('Account Does Not Exist');
     }
 
-    if(account.user.status === 'pending') {
-      account = yield AccountDal.update(query, body);
-
-    } else {
-      account = yield AccountDal.update(query, body);
-      
-      yield UserDal.update({ _id: account.user._id }, { status: 'pending' });
-
-
-      // Create Task
-      yield TaskDal.create({
-        task: `Approve Updated Account of ${account.first_name} ${account.last_name}`,
-        task_type: 'approve',
-        entity_ref: account._id,
-        entity_type: 'account',
-        created_by: this.state._user._id
-      })
-
-
-    }
+    account = yield AccountDal.update(query, body);
 
     yield LogDal.track({
       event: 'account_update',
