@@ -36,6 +36,8 @@ exports.create = function* createPermission(next) {
 
   this.checkBody('name')
       .notEmpty('Permission name is empty');
+  this.checkBody('entity')
+      .notEmpty('Permission Entity is empty');
 
   if(this.errors) {
     return this.throw(new CustomError({
