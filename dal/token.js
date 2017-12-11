@@ -13,7 +13,7 @@ const Token       = require('../models/token');
 const User        = require('../models/user');
 const mongoUpdate = require('../lib/mongo-update');
 
-const returnFields = Token.whitelist;
+const returnFields = Token.attributes;
 
 var population = [{
   path: 'user',

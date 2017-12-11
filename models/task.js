@@ -48,7 +48,7 @@ TaskSchema.pre('save', function preSaveMiddleware(next) {
 /**
  * Filter Task Attributes to expose
  */
-TaskSchema.statics.whitelist = {
+TaskSchema.statics.attributes = {
   _id: 1,
   entity_type: 1,
   entity_ref: 1,
@@ -59,7 +59,7 @@ TaskSchema.statics.whitelist = {
   last_modified: 1,
   user: 1,
   created_by: 1,
-  comment:1 
+  comment:1
 };
 
 

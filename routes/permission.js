@@ -21,16 +21,18 @@ var router  = Router();
  *
  * @apiParam {String} name Permission Name
  * @apiParam {String} description Permission Description
+ * @apiParam {String} entity Entity Permission For
  * @apiParam {String} module Module
  * @apiParam {Array} endpoints Array of Endpoints
  * @apiParam {Array} operations Operations ie READ, UPDATE, DELETE, CREATE
  *
  * @apiParamExample Request Example:
  *  {
- *    name: "Loan Officer",
- *    description: "Loan Officer Loans Module Permissions",
+ *    name: "manage_user",
+ *    description: "Manage user permissions",
  *    module: "LOAN_APPLICATION",
- *    operations: ['CREATE'],
+ *    entity: "USER",
+ *    operations: 'CREATE',
  *    endpoints: []
  *  }
  *
@@ -40,6 +42,7 @@ var router  = Router();
  * @apiSuccess {String} module Module
  * @apiSuccess {Array} endpoints Array of Endpoints
  * @apiSuccess {Array} operations Operations ie READ, UPDATE, DELETE, CREATE
+ * @apiSuccess {String} entity Entity Permission For
  *
  * @apiSuccessExample Response Example:
  *  {
@@ -47,7 +50,8 @@ var router  = Router();
  *    name: "Loan Officer",
  *    description: "Loan Officer Loans Module Permissions",
  *    module: "LOAN_APPLICATION",
- *    operations: ['CREATE'],
+ *    operations: 'CREATE',
+ *    entity: "USER",
  *    endpoints: []
  *  }
  *
@@ -71,6 +75,7 @@ router.post('/create', permissionController.create);
  * @apiSuccess {String} module Module
  * @apiSuccess {Array} endpoints Array of Endpoints
  * @apiSuccess {Array} operations Operations ie READ, UPDATE, DELETE, CREATE
+ * @apiSuccess {String} entity Entity Permission For
  *
  * @apiSuccessExample Response Example:
  *  {
@@ -81,7 +86,8 @@ router.post('/create', permissionController.create);
  *    name: "Loan Officer",
  *    description: "Loan Officer Loans Module Permissions",
  *    module: "LOAN_APPLICATION",
- *    operations: ['CREATE'],
+ *    operations: 'CREATE',
+ *    entity: "USER",
  *    endpoints: []
  *    }]
  *  }
@@ -102,6 +108,7 @@ router.get('/paginate', acl(['*']), permissionController.fetchAllByPagination);
  * @apiSuccess {String} module Module
  * @apiSuccess {Array} endpoints Array of Endpoints
  * @apiSuccess {Array} operations Operations ie READ, UPDATE, DELETE, CREATE
+ * @apiSuccess {String} entity Entity Permission For
  *
  * @apiSuccessExample Response Example:
  *  {
@@ -109,7 +116,8 @@ router.get('/paginate', acl(['*']), permissionController.fetchAllByPagination);
  *    name: "Loan Officer",
  *    description: "Loan Officer Loans Module Permissions",
  *    module: "LOAN_APPLICATION",
- *    operations: ['CREATE'],
+ *    operations: 'CREATE',
+ *    entity: "USER",
  *    endpoints: []
  *  }
  *
@@ -129,7 +137,7 @@ router.get('/:id', acl(['*']), permissionController.fetchOne);
  *
  * @apiParamExample Request example:
  * {
- *    operations: ['CREATE', 'UPDATE']
+ *    operations: 'UPDATE'
  * }
  *
  * @apiSuccess {String} _id permission id
@@ -138,6 +146,7 @@ router.get('/:id', acl(['*']), permissionController.fetchOne);
  * @apiSuccess {String} module Module
  * @apiSuccess {Array} endpoints Array of Endpoints
  * @apiSuccess {Array} operations Operations ie READ, UPDATE, DELETE, CREATE
+ * @apiSuccess {String} entity Entity Permission For
  *
  * @apiSuccessExample Response Example:
  *  {
@@ -145,7 +154,8 @@ router.get('/:id', acl(['*']), permissionController.fetchOne);
  *    name: "Loan Officer",
  *    description: "Loan Officer Loans Module Permissions",
  *    module: "LOAN_APPLICATION",
- *    operations: ['CREATE', 'UPDATE'],
+ *    operations: 'UPDATE',
+ *    entity: "USER",
  *    endpoints: []
  *  }
  */
@@ -166,6 +176,7 @@ router.put('/:id', acl(['*']), permissionController.update);
  * @apiSuccess {String} module Module
  * @apiSuccess {Array} endpoints Array of Endpoints
  * @apiSuccess {Array} operations Operations ie READ, UPDATE, DELETE, CREATE
+ * @apiSuccess {String} entity Entity Permission For
  *
  * @apiSuccessExample Response Example:
  *  {
@@ -173,7 +184,8 @@ router.put('/:id', acl(['*']), permissionController.update);
  *    name: "Loan Officer",
  *    description: "Loan Officer Loans Module Permissions",
  *    module: "LOAN_APPLICATION",
- *    operations: ['CREATE', 'UPDATE'],
+ *    operations: 'UPDATE',
+ *    entity: "USER",
  *    endpoints: []
  *  }
  */

@@ -18,6 +18,7 @@ const Admin         = require('../models/admin');
 const mongoUpdate = require('../lib/mongo-update');
 
 var returnFields = User.attributes;
+
 var population = [{
   path: 'account',
   select: Account.attributes,
@@ -189,7 +190,7 @@ exports.getCollectionByPagination = function getCollection(query, qs) {
 
   let opts = {
     select:  returnFields,
-    sort:   qs.sort || {},
+    sort:   qs.sort,
     populate: population,
     page:     qs.page,
     limit:    qs.limit

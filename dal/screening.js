@@ -14,6 +14,7 @@ const Answer = require('../models/answer');
 const mongoUpdate   = require('../lib/mongo-update');
 
 var returnFields = Screening.attributes;
+
 var population = [{
   path: 'answers',
   select: Answer.attributes

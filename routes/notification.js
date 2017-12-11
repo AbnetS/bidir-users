@@ -76,6 +76,5 @@ router.get('/paginate', acl(['*']), notificationController.fetchAllByPagination)
  */
 router.get('/:id', acl(['*']), notificationController.fetchOne);
 
-
 // Expose Notification Router
 module.exports = router;

@@ -27,6 +27,7 @@ const PermissionDal      = require('../dal/permission');
 const AccountDal        = require('../dal/account');
 const TaskDal           = require('../dal/task');
 
+let hasPermission = checkPermissions.isPermitted('USER');
 
 /**
  * Create a user.
@@ -38,6 +39,14 @@ const TaskDal           = require('../dal/task');
  */
 exports.create = function* createUser(next) {
   debug('create user');
+
+  let isPermitted = yield hasPermission(this.state._user, 'CREATE');
+  if(!isPermitted) {
+      return this.throw(new CustomError({
+        type: 'USER_CREATION_ERROR',
+        message: "You Don't have enough permissions to complete this action"
+      }));
+  }
 
   let isSuper = false;
   let body = this.request.body;
@@ -59,15 +68,6 @@ exports.create = function* createUser(next) {
 
     body = _clone;
 
-  }
-
-
-  let isPermitted = yield checkPermissions.isPermitted(this.state._user, 'manage_users_create');
-  if(!isPermitted) {
-      return this.throw(new CustomError({
-        type: 'USER_CREATION_ERROR',
-        message: "You Don't have enough permissions to complete this action"
-      }));
   }
   
   let errors = [];
@@ -167,6 +167,14 @@ exports.create = function* createUser(next) {
 exports.fetchOne = function* fetchOneUser(next) {
   debug(`fetch user: ${this.params.id}`);
 
+  let isPermitted = yield hasPermission(this.state._user, 'VIEW');
+  if(!isPermitted) {
+      return this.throw(new CustomError({
+        type: 'GET_USER_ERROR',
+        message: "You Don't have enough permissions to complete this action"
+      }));
+  }
+
   let query = {
     _id: this.params.id
   };
@@ -183,7 +191,7 @@ exports.fetchOne = function* fetchOneUser(next) {
     this.body = user;
   } catch(ex) {
     return this.throw(new CustomError({
-      type: 'USER_RETRIEVAL_ERROR',
+      type: 'GET_USER_ERROR',
       message: ex.message
     }));
   }
@@ -199,6 +207,14 @@ exports.fetchOne = function* fetchOneUser(next) {
  */
 exports.updateStatus = function* updateUser(next) {
   debug(`updating status user: ${this.params.id}`);
+
+  let isPermitted = yield hasPermission(this.state._user, 'UPDATE');
+  if(!isPermitted) {
+      return this.throw(new CustomError({
+        type: 'UPDATE_USER_STATUS_ERROR',
+        message: "You Don't have enough permissions to complete this action"
+      }));
+  }
 
   this.checkBody('status')
       .notEmpty('Status should not be empty')
@@ -219,7 +235,7 @@ exports.updateStatus = function* updateUser(next) {
         task_type: 'update',
         entity_ref: account._id,
         entity_type: 'account'
-      })
+      });
     } else if(body.status === 'approved') {
       // Create Task
       yield TaskDal.create({
@@ -243,7 +259,7 @@ exports.updateStatus = function* updateUser(next) {
 
   } catch(ex) {
     return this.throw(new CustomError({
-      type: 'USER_STATUS_UPDATE_ERROR',
+      type: 'UPDATE_USER_STATUS_ERROR',
       message: ex.message
     }));
 
@@ -262,18 +278,18 @@ exports.updateStatus = function* updateUser(next) {
 exports.update = function* updateUser(next) {
   debug(`updating user: ${this.params.id}`);
 
+  let isPermitted = yield hasPermission(this.state._user, 'UPDATE');
+  if(!isPermitted) {
+      return this.throw(new CustomError({
+        type: 'UPDATE_USER_ERROR',
+        message: "You Don't have enough permissions to complete this action"
+      }));
+  }
+
   let query = {
     _id: this.params.id
   };
   let body = this.request.body;
-
-  let isPermitted = yield checkPermissions.isPermitted(this.state._user, 'manage_users_update');
-  if(!isPermitted) {
-    return this.throw(new CustomError({
-      type: 'USERS_COLLECTION_ERROR',
-      message: "You Don't have enough permissions to complete this action"
-    }));
-  }
 
   try {
     let user = yield UserDal.update(query, body);
@@ -312,6 +328,14 @@ exports.update = function* updateUser(next) {
 exports.fetchAllByPagination = function* fetchAllUsers(next) {
   debug('get a collection of users by pagination');
 
+  let isPermitted = yield hasPermission(this.state._user, 'VIEW');
+  if(!isPermitted) {
+      return this.throw(new CustomError({
+        type: 'GET_USERS_COLLECTION_ERROR',
+        message: "You Don't have enough permissions to complete this action"
+      }));
+  }
+
   // retrieve pagination query params
   let page   = this.query.page || 1;
   let limit  = this.query.per_page || 10;
@@ -321,21 +345,13 @@ exports.fetchAllByPagination = function* fetchAllUsers(next) {
 
   let sortType = this.query.sort_by;
   let sort = {};
-  sortType ? (sort[sortType] = 1) : null;
+  sortType ? (sort[sortType] = -1) : (sort.date_created = -1 );
 
   let opts = {
     page: +page,
     limit: +limit,
     sort: sort
   };
-
-  let isPermitted = yield checkPermissions.isPermitted(this.state._user, 'manage_users_view');
-  if(!isPermitted) {
-    return this.throw(new CustomError({
-      type: 'USERS_COLLECTION_ERROR',
-      message: "You Don't have enough permissions to complete this action"
-    }));
-  }
 
   try {
     

@@ -25,6 +25,9 @@ const UserDal            = require('../dal/user');
 const AccountDal         = require('../dal/account');
 const ScreeningDal       = require('../dal/screening');
 const NotificationDal    = require('../dal/notification');
+const ClientDal          = require('../dal/client');
+
+let hasPermission = checkPermissions.isPermitted('TASK');
 
 /**
  * Get a single task.
@@ -69,77 +72,80 @@ exports.fetchOne = function* fetchOneTask(next) {
 exports.updateStatus = function* updateTask(next) {
   debug(`updating status task: ${this.params.id}`);
 
+  let isPermitted = yield hasPermission(this.state._user, 'AUTHORIZE');
+  if(!isPermitted) {
+    return this.throw(new CustomError({
+      type: 'TASK_STATUS_UPDATE_ERROR',
+      message: "You Don't have enough permissions to complete this action"
+    }));
+  }
+
   this.checkBody('status')
       .notEmpty('Status should not be empty');
+
+  if(this.errors) {
+    return this.throw(new CustomError({
+      type: 'TASK_STATUS_UPDATE_ERROR',
+      message: JSON.stringify(this.errors)
+    }));
+  }
 
   let query = {
     _id: this.params.id
   };
   let body = this.request.body;
-  let user = this.state._user;
+
+  let task = yield TaskDal.get(query);
+  if(!task) {
+    throw new Error('Task Is Not Known!');
+  }
+
+  if(task.entity_type === 'screening') {
+      this.checkBody('status')
+          .isIn(['approved', 'declined_final', 'declined_under_review'], 'Required status types for screening task is approved, declined_final or declined_under_review');
+  }
+
+  if(this.errors) {
+    return this.throw(new CustomError({
+      type: 'TASK_STATUS_UPDATE_ERROR',
+      message: JSON.stringify(this.errors)
+    }));
+  }
 
   try {
-    let task;
-    let account = yield AccountDal.get({ user: user._id });
-    let canApprove = false;
-    let canAuthorize = false;
-    let canDelete = false;
-    let canRead = false;
-    let canModify = false;
-    let canCreate = false;
-    let canActivate = false;
-    let canDeactivate = false;
-    let canArchive = false;
 
-    for(let permission of account.role.permissions) {
-      let operation = permission.operation;
-
-      if(operation === 'AUTHORIZE') canAuthorize = true;
-      if(operation === 'DELETE') canDelete = true;
-      if(operation === 'VIEW') canRead = true;
-      if(operation === 'UPDATE') canModify = true;
-      if(operation === 'CREATE') canCreate = true;
-      if(operation === 'ACTIVATE') canActivate = true;
-      if(operation === 'DEACTIVATE') canDeactivate = true;
-      if(operation === 'ARCHIVE') canArchive = true;
-    }
-
-    task = yield TaskDal.get(query);
-
-    if(body.status === 'approved') {
-      if(!canAuthorize) throw new Error('You are not allowed to complete this action');
-
-      switch(task.entity_type) {
-        case 'account':
-          let created = yield AccountDal.get({ _id: task.entity_ref });
-          yield UserDal.update({ account: task.entity_ref }, { status: 'active '});
+    switch(task.entity_type) {
+      case 'screening':
+        let screening = yield ScreeningDal.update({ _id: task.entity_ref }, { status: body.status });
+        let client    = yield ClientDal.get({ _id: screening.client });
+        
+        if(body.status === 'approved') {
+          client    = yield ClientDal.update({ _id: screening.client }, { status: 'eligible' });
           yield NotificationDal.create({
             for: task.created_by,
-            message: `Account of ${created.first_name} ${created.last_name} has been approved`
+            message: `Screening of ${client.first_name} ${client.last_name} has been approved`,
+            task_ref: task._id
           });
-          task = yield TaskDal.update(query, { status: 'done', comment: body.comment });
-          break;
-        case 'screening':
-          yield ScreeningDal.update({ _id: task.entity_ref }, { status: 'approved '});
-          break;
-      }
-    } else if(body.status === 'declined') {
-      if(!canAuthorize) throw new Error('You are not allowed to complete this action');
 
-      switch(task.entity_type) {
-        case 'account':
-          let created = yield AccountDal.get({ _id: task.entity_ref });
-          yield UserDal.update({ account: task.entity_ref }, { status: 'declined '});
+        } else if(body.status === 'declined_final') {
+          client    = yield ClientDal.update({ _id: screening.client }, { status: 'ineligible' });
           yield NotificationDal.create({
             for: task.created_by,
-            message: `New Account of ${created.first_name} ${created.last_name} has been declined. Review Task`
+            message: `Screening of ${client.first_name} ${client.last_name} has been declined in Final`,
+            task_ref: task._id
           });
-          task = yield TaskDal.update(query, { comment: body.comment });
-          break;
-        case 'screening':
-          yield ScreeningDal.update({ _id: task.entity_ref }, { status: 'approved '});
-          break;
-      }
+
+        } else if(body.status === 'declined_under_review') {
+          client    = yield ClientDal.update({ _id: screening.client }, { status: 'ineligible' });
+          yield NotificationDal.create({
+            for: task.created_by,
+            message: `Screening of ${client.first_name} ${client.last_name} has been declined For Further Review`,
+            task_ref: task._id
+          });
+        }
+
+        task = yield TaskDal.update(query, { status: 'done', comment: body.comment });
+        break;
     }
 
     yield LogDal.track({
@@ -216,7 +222,7 @@ exports.fetchAllByPagination = function* fetchAllTasks(next) {
 
   let sortType = this.query.sort_by;
   let sort = {};
-  sortType ? (sort[sortType] = 1) : null;
+  sortType ? (sort[sortType] = -1) : (sort.date_created = -1 );
 
   let opts = {
     page: +page,
@@ -224,11 +230,11 @@ exports.fetchAllByPagination = function* fetchAllTasks(next) {
     sort: sort
   };
 
-  let hasPermission = yield checkPermissions.hasPermission(this.state._user, 'AUTHORIZE');
+  let isAuthorized = yield hasPermission(this.state._user, 'AUTHORIZE');
 
   try {
 
-    if(hasPermission) {
+    if(isAuthorized) {
       query = {
         user: { $in: [null, this.state._user._id ] }
       };

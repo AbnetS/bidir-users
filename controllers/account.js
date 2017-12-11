@@ -30,6 +30,8 @@ const RoleDal           = require('../dal/role');
 const PermissionDal      = require('../dal/permission');
 const TaskDal            = require('../dal/task');
 
+let hasPermission = checkPermissions.isPermitted('USER');
+
 /**
  * Get a single account.
  *
@@ -63,45 +65,6 @@ exports.fetchOne = function* fetchOneAccount(next) {
 
 };
 
-/**
- * Update Account Status
- *
- * @desc Fetch a account with the given ID and update their respective status.
- *
- * @param {Function} next Middleware dispatcher
- */
-exports.updateStatus = function* updateAccount(next) {
-  debug(`updating status account: ${this.params.id}`);
-
-  this.checkBody('is_active')
-      .notEmpty('is_active should not be empty');
-
-  let query = {
-    _id: this.params.id
-  };
-  let body = this.request.body;
-
-  try {
-    let account = yield AccountDal.update(query, body);
-
-    yield LogDal.track({
-      event: 'account_status_update',
-      account: this.state._user._id ,
-      message: `Update Status for ${account.email}`,
-      diff: body
-    });
-
-    this.body = account;
-
-  } catch(ex) {
-    return this.throw(new CustomError({
-      type: 'ACCOUNT_STATUS_UPDATE_ERROR',
-      message: ex.message
-    }));
-
-  }
-
-};
 
 /**
  * Update a single account.
@@ -114,7 +77,7 @@ exports.updateStatus = function* updateAccount(next) {
 exports.update = function* updateAccount(next) {
   debug(`updating account: ${this.params.id}`);
 
-  let isPermitted = yield checkPermissions.isPermitted(this.state._user, 'manage_users_update');
+  let isPermitted = yield hasPermission(this.state._user, 'UPDATE');
   if(!isPermitted) {
     return this.throw(new CustomError({
       type: 'ACCOUNT_UPDATE_ERROR',
@@ -164,6 +127,14 @@ exports.update = function* updateAccount(next) {
  */
 exports.updatePhoto = function* updateAccountPhoto(next) {
   debug(`updating photo for account: ${this.params.id}`);
+
+  let isPermitted = yield hasPermission(this.state._user, 'UPDATE');
+  if(!isPermitted) {
+    return this.throw(new CustomError({
+      type: 'UPDATE_ACCOUNT_PHOTO_ERROR',
+      message: "You Don't have enough permissions to complete this action"
+    }));
+  }
 
   let query = {
     _id: this.params.id
@@ -251,7 +222,7 @@ exports.fetchAllByPagination = function* fetchAllAccounts(next) {
 
   let sortType = this.query.sort_by;
   let sort = {};
-  sortType ? (sort[sortType] = 1) : null;
+  sortType ? (sort[sortType] = -1) : (sort.date_created = -1 );
 
   let opts = {
     page: +page,
@@ -287,7 +258,7 @@ exports.getBranchAccounts = function* getBranchAccounts(next) {
 
   let sortType = this.query.sort_by;
   let sort = {};
-  sortType ? (sort[sortType] = 1) : null;
+  sortType ? (sort[sortType] = -1) : (sort.date_created = -1 );
 
   let opts = {
     page: +page,

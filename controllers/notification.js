@@ -16,12 +16,15 @@ const validator  = require('validator');
 
 const config             = require('../config');
 const CustomError        = require('../lib/custom-error');
+const checkPermissions   = require('../lib/permissions');
 
 const LogDal             = require('../dal/log');
 const UserDal            = require('../dal/user');
 const AccountDal         = require('../dal/account');
 const ScreeningDal       = require('../dal/screening');
 const NotificationDal    = require('../dal/notification');
+
+let hasPermission = checkPermissions.isPermitted('TASK');
 
 /**
  * Get a single notification.
@@ -104,10 +107,56 @@ exports.update = function* updateNotification(next) {
 exports.fetchAllByPagination = function* fetchAllNotifications(next) {
   debug('get a collection of notifications by pagination');
 
+  let isAuthorized = yield hasPermission(this.state._user, 'AUTHORIZE');
+
   // retrieve pagination query params
   let page   = this.query.page || 1;
   let limit  = this.query.per_page || 10;
   let query =  this.query.query || {};
+
+  let sortType = this.query.sort_by;
+  let sort = {};
+  sortType ? (sort[sortType] = -1) : (sort.date_created = -1 );
+
+  let opts = {
+    page: +page,
+    limit: +limit,
+    sort: sort
+  };
+
+  try {
+
+    if(!isAuthorized) {
+      query.for = this.state._user._id;
+    }
+
+    let notifications = yield NotificationDal.getCollectionByPagination(query, opts);
+
+    this.body = notifications;
+  } catch(ex) {
+    return this.throw(new CustomError({
+      type: 'GET_NOTIFICATIONS_COLLECTION_ERROR',
+      message: ex.message
+    }));
+  }
+};
+
+/**
+ * Get a user notifications 
+ *
+ * @desc Fetch a collection of notifications for a given user
+ *
+ * @param {Function} next Middleware dispatcher
+ */
+exports.getUserNotifications = function* getUserNotifications(next) {
+  debug('get a collection of notifications for a given user');
+
+  // retrieve pagination query params
+  let page   = this.query.page || 1;
+  let limit  = this.query.per_page || 10;
+  let query =  {
+    for: this.params.id
+  };
 
   let sortType = this.query.sort_by;
   let sort = {};
@@ -126,8 +175,9 @@ exports.fetchAllByPagination = function* fetchAllNotifications(next) {
     this.body = notifications;
   } catch(ex) {
     return this.throw(new CustomError({
-      type: 'FETCH_NOTIFICATIONS_COLLECTION_ERROR',
+      type: 'GET_USER_NOTIFICATIONS_ERROR',
       message: ex.message
     }));
   }
 };
+

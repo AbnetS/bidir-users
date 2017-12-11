@@ -47,7 +47,7 @@ BranchSchema.pre('save', function preSaveMiddleware(next) {
 /**
  * Filter Branch Attributes to expose
  */
-BranchSchema.statics.whitelist = {
+BranchSchema.statics.attributes = {
    _id: 1,
   name: 1,
   location: 1,

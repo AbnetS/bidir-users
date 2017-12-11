@@ -1,98 +1,89 @@
 'use strict';
-// Access Layer for Account Data.
+// Access Layer for Client Data.
 
 /**
  * Load Module Dependencies.
  */
-const debug   = require('debug')('api:dal-account');
+const debug   = require('debug')('api:dal-client');
 const moment  = require('moment');
 const _       = require('lodash');
 const co      = require('co');
 const async   = require('async');
 const crypto  = require('crypto');
 
-const Account     = require('../models/account');
-const User        = require('../models/user');
-const Role        = require('../models/role');
-const Permission  = require('../models/permission');
+const Client     = require('../models/client');
 const Branch      = require('../models/branch');
+const Account      = require('../models/account');
 const mongoUpdate = require('../lib/mongo-update');
 
-const returnFields = Account.attributes;
+const returnFields = Client.attributes;
 var population = [{
-  path: 'user',
-  select: User.attributes
-},{
-  path: 'role',
-  select: Role.attributes,
-  populate: {
-    path: 'permissions',
-    select: Permission.attributes
-  }
+  path: 'account',
+  select: Account.attributes
 },{
   path: 'branch',
   select: Branch.attributes
 }];
 
 /**
- * create a new account.
+ * create a new client.
  *
- * @desc  creates a new account and saves them
+ * @desc  creates a new client and saves them
  *        in the database
  *
- * @param {Object}  accountData  Data for the account to create
+ * @param {Object}  clientData  Data for the client to create
  */
-exports.create = function create(accountData) {
-  debug('creating a new account');
+exports.create = function create(clientData) {
+  debug('creating a new client');
 
 
   return co(function* () {
 
-    let newAccount = new Account(accountData);
-    let account = yield newAccount.save();
+    let newClient = new Client(clientData);
+    let client = yield newClient.save();
 
-    return yield exports.get({ _id: account._id});
+    return yield exports.get({ _id: client._id});
 
   });
 
 };
 
 /**
- * delete a account
+ * delete a client
  *
- * @desc  delete data of the account with the given
+ * @desc  delete data of the client with the given
  *        id
  *
  * @param {Object}  query   Query Object
  */
 exports.delete = function deleteItem(query) {
-  debug(`deleting account: ${query}`);
+  debug(`deleting client: ${query}`);
 
   return co(function* () {
-    let account = yield exports.get(query);
+    let client = yield exports.get(query);
     let _empty = {};
 
-    if(!account) {
+    if(!client) {
       return _empty;
     } else {
-      yield account.remove();
+      yield client.remove();
 
-      return account;
+      return client;
     }
   });
 };
 
 /**
- * update a account
+ * update a client
  *
- * @desc  update data of the account with the given
+ * @desc  update data of the client with the given
  *        id
  *
  * @param {Object} query Query object
  * @param {Object} updates  Update data
  */
 exports.update = function update(query, updates) {
-  debug(`updating account: ${query}`);
+  debug(`updating client: ${query}`);
 
   let now = moment().toISOString();
   let opts = {
@@ -102,65 +93,65 @@ exports.update = function update(query, updates) {
 
   updates = mongoUpdate(updates);
 
-  return Account.findOneAndUpdate(query, updates, opts)
+  return Client.findOneAndUpdate(query, updates, opts)
               .populate(population)
               .exec();
 };
 
 /**
- * get a account.
+ * get a client.
  *
- * @desc get a account with the given id from db
+ * @desc get a client with the given id from db
  *
  * @param {Object} query Query Object
  */
 exports.get = function get(query) {
-  debug(`getting account ${query}`);
+  debug(`getting client ${query}`);
 
-  return Account.findOne(query, returnFields)
+  return Client.findOne(query, returnFields)
               .populate(population)
               .exec();
 };
 
 /**
- * get a collection of accounts
+ * get a collection of clients
  *
- * @desc get a collection of accounts from db
+ * @desc get a collection of clients from db
  *
  * @param {Object} query Query Object
  */
 exports.getCollection = function getCollection(query, qs) {
-  debug('fetching a collection of accounts');
+  debug('fetching a collection of clients');
 
   return co(function*() {
-    let accounts = yield Account.find(query, returnFields).populate(population).exec();
+    let clients = yield Client.find(query, returnFields).populate(population).exec();
 
-    return accounts;
+    return clients;
 
   });
 
 };
 
 /**
- * get a collection of accounts using pagination
+ * get a collection of clients using pagination
  *
- * @desc get a collection of accounts from db
+ * @desc get a collection of clients from db
  *
  * @param {Object} query Query Object
  */
 exports.getCollectionByPagination = function getCollection(query, qs) {
-  debug('fetching a collection of accounts');
+  debug('fetching a collection of clients');
 
   let opts = {
     select:  returnFields,
-    sort:   qs.sort,
+    sort:   qs.sort || {},
     populate: population,
     page:     qs.page,
     limit:    qs.limit
   };
 
   return new Promise((resolve, reject) => {
-    Account.paginate(query, opts, function (err, docs) {
+    Client.paginate(query, opts, function (err, docs) {
       if(err) {
         return reject(err);
       }
