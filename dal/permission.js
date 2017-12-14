@@ -126,15 +126,9 @@ exports.get = function get(query, permission) {
 exports.getCollection = function getCollection(query, qs) {
   debug('fetching a collection of permissions');
 
-  return new Promise((resolve, reject) => {
-    resolve(
-     Permission
-      .find(query, returnFields)
-      .populate(population)
-      .stream());
-  });
-
-
+  return Permission.find(query, returnFields)
+    .populate(population)
+    .exec();
 };
 
 /**

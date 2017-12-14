@@ -95,6 +95,37 @@ router.post('/create', permissionController.create);
 router.get('/paginate', acl(['*']), permissionController.fetchAllByPagination);
 
 /**
+ * @api {get} /users/permissions/groups Get permissions grouped
+ * @apiVersion 1.0.0
+ * @apiName GroupedPermissions
+ * @apiGroup Permission
+ *
+ * @apiDescription Get a collection of permissions grouped.
+ *
+ * @apiSuccess {String} _id permission id
+ * @apiSuccess {String} name Permission Name
+ * @apiSuccess {String} description Permission Description
+ * @apiSuccess {String} module Module
+ * @apiSuccess {Array} endpoints Array of Endpoints
+ * @apiSuccess {Array} operations Operations ie READ, UPDATE, DELETE, CREATE
+ * @apiSuccess {String} entity Entity Permission For
+ *
+ * @apiSuccessExample Response Example:
+ *  {
+ *    "LOAN_APPLICATION": [{
+ *      _id : "556e1174a8952c9521286a60",
+ *      name: "Loan Officer",
+ *      description: "Loan Officer Loans Module Permissions",
+ *      module: "LOAN_APPLICATION",
+ *      operations: 'CREATE',
+ *      entity: "USER",
+ *      endpoints: []
+ *    }]
+ *  }
+ */
+router.get('/groups', acl(['*']), permissionController.getByModules);
+
+/**
  * @api {get} /users/permissions/:id Get Permission
  * @apiVersion 1.0.0
  * @apiName GetPermission

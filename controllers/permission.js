@@ -221,6 +221,39 @@ exports.fetchAllByPagination = function* fetchAllPermissions(next) {
   }
 };
 
+/**
+ * Get a collection of permissions grouped by Module
+ *
+ * @desc Fetch a collection of permissions grouped by module
+ *
+ * @param {Function} next Middleware dispatcher
+ */
+exports.getByModules = function* getByModules(next) {
+  debug('get a collection of permissions by modules');
+
+  try {
+    let query = {};
+    
+    let permissions = yield PermissionDal.getCollection(query);
+
+    let groups = {};
+
+    for(let permission of permissions) {
+      groups[permission.module] = groups[permission.module] || [];
+
+      groups[permission.module].push(permission);
+    }
+
+    this.body = groups;
+
+  } catch(ex) {
+    return this.throw(new CustomError({
+      type: 'GROUPED_PERMISSIONS_COLLECTION_ERROR',
+      message: ex.message
+    }));
+  }
+};
+
 
 /**
  * Remove a single permission.

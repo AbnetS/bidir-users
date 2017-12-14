@@ -7,7 +7,7 @@ var mongoose  = require('mongoose');
 var moment    = require('moment');
 var paginator = require('mongoose-paginate');
 
-var enums     = require ('../lib/enums');
+var enums     = ['MFI_SETUP', 'USER_MANAGEMENT', 'SCREENING_MANAGEMENT', 'LOANS_MANAGEMENT', 'GROUPS_MANAGEMENT', 'FORMS_MANAGEMENT']
 
 var Schema = mongoose.Schema;
 
@@ -16,8 +16,8 @@ var PermissionSchema = new Schema({
     description:    { type: String, default: 'No Description' }, 
     entity:         { type: String, required: true },
     module:         { 
-      type: String, 
-      enums:[enums.MODULES.MFI_SETUP,enums.MODULES.USER_MANAGEMENT]
+      type: String 
+      //enum:enums
     },
     endpoints:  [{
       url: { type: String }
