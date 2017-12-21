@@ -2,7 +2,7 @@
 
 /**
  * Load Module Dependencies.
- * status: incomplete, completed, cancelled, approved
+ * status: incomplete, completed, declined, approved, new
  */
 var mongoose  = require('mongoose');
 var moment    = require('moment');
@@ -16,11 +16,10 @@ var ScreeningSchema = new Schema({
     type:           { type: String, default: 'Screening' },
     description:    { type: String, default: '' },
     title:          { type: String, default: '' },
-    process:        { type: String, default: '' },
     answers:        [{ type: Schema.Types.ObjectId, ref: 'Answer'}],
     created_by:     { type: Schema.Types.ObjectId, ref: 'Account' },
     client:         { type: Schema.Types.ObjectId, ref: 'Client' },
-    status:         { type: String, default: 'incomplete' },
+    status:         { type: String, default: 'new' },
     date_created:   { type: Date },
     last_modified:  { type: Date }
 });

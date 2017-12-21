@@ -120,15 +120,16 @@ exports.updateStatus = function* updateTask(next) {
         let client    = yield ClientDal.get({ _id: screening.client });
         
         if(body.status === 'approved') {
-          client    = yield ClientDal.update({ _id: screening.client }, { status: 'eligible' });
+          client    = yield ClientDal.update({ _id: client._id }, { status: 'eligible' });
           yield NotificationDal.create({
             for: task.created_by,
             message: `Screening of ${client.first_name} ${client.last_name} has been approved`,
             task_ref: task._id
           });
 
+
         } else if(body.status === 'declined_final') {
-          client    = yield ClientDal.update({ _id: screening.client }, { status: 'ineligible' });
+          client    = yield ClientDal.update({ _id: client._id }, { status: 'ineligible' });
           yield NotificationDal.create({
             for: task.created_by,
             message: `Screening of ${client.first_name} ${client.last_name} has been declined in Final`,
@@ -136,7 +137,7 @@ exports.updateStatus = function* updateTask(next) {
           });
 
         } else if(body.status === 'declined_under_review') {
-          client    = yield ClientDal.update({ _id: screening.client }, { status: 'ineligible' });
+          client    = yield ClientDal.update({ _id: client._id }, { status: 'ineligible' });
           yield NotificationDal.create({
             for: task.created_by,
             message: `Screening of ${client.first_name} ${client.last_name} has been declined For Further Review`,
