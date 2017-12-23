@@ -164,7 +164,7 @@ exports.updateStatus = function* updateTask(next) {
         
         if(body.status === 'accepted') {
           loan      = yield LoanDal.update({ _id: loan._id }, { status: body.status });
-          //client    = yield ClientDal.update({ _id: client._id }, { status: 'eligible' });
+          client    = yield ClientDal.update({ _id: client._id }, { status: 'loan_application_accepted' });
           yield NotificationDal.create({
             for: task.created_by,
             message: `Loan Application of ${client.first_name} ${client.last_name} has been accepted`,
@@ -174,7 +174,7 @@ exports.updateStatus = function* updateTask(next) {
 
         } else if(body.status === 'declined_final') {
           loan      = yield LoanDal.update({ _id: loan._id }, { status: body.status });
-          //client    = yield ClientDal.update({ _id: client._id }, { status: 'ineligible' });
+          client    = yield ClientDal.update({ _id: client._id }, { status: 'loan_application_declined' });
           yield NotificationDal.create({
             for: task.created_by,
             message: `Loan Application  of ${client.first_name} ${client.last_name} has been declined in Final`,
@@ -183,7 +183,7 @@ exports.updateStatus = function* updateTask(next) {
 
         } else if(body.status === 'declined_under_review') {
           loan      = yield LoanDal.update({ _id: loan._id }, { status: body.status });
-          //client    = yield ClientDal.update({ _id: client._id }, { status: 'ineligible' });
+          client    = yield ClientDal.update({ _id: client._id }, { status: 'loan_application_inprogress' });
           yield NotificationDal.create({
             for: task.created_by,
             message: `Loan Application of ${client.first_name} ${client.last_name} has been declined For Further Review`,
