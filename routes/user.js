@@ -123,6 +123,33 @@ router.post('/create', acl('*'), userController.create);
 router.get('/paginate', acl(['*']), userController.fetchAllByPagination);
 
 /**
+ * @api {put} /users/:id/passwords Update User Password
+ * @apiVersion 1.0.0
+ * @apiName UpdatePassword
+ * @apiGroup User 
+ *
+ * @apiDescription Update a User Password with the given id
+ *
+ * @apiParam {String} old_password Old Password
+ * @apiParam {String} new_password New Password
+ *
+ * @apiParamExample Request example:
+ * {
+ *    old_password: "oldpassword",
+ *    new_password: "newpassword"
+ * }
+ *
+ * @apiSuccess {String} message Message
+ *
+ * @apiSuccessExample Response Example:
+ *  {
+ *    message : "Password Updated Successful"
+ *  }
+ */
+router.put('/:id/passwords', acl(['*']), userController.updatePassword);
+
+
+/**
  * @api {get} /users/:id Get User User
  * @apiVersion 1.0.0
  * @apiName Get

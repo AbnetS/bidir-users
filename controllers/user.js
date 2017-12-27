@@ -19,6 +19,8 @@ const CustomError        = require('../lib/custom-error');
 const googleBuckets      = require('../lib/google-buckets');
 const checkPermissions   = require('../lib/permissions');
 
+const User               = require('../models/user');
+
 const UserDal            = require('../dal/user');
 const LogDal             = require('../dal/log');
 const BranchDal          = require('../dal/branch');
@@ -26,6 +28,7 @@ const RoleDal           = require('../dal/role');
 const PermissionDal      = require('../dal/permission');
 const AccountDal        = require('../dal/account');
 const TaskDal           = require('../dal/task');
+const TokenDal          = require('../dal/token');
 
 let hasPermission = checkPermissions.isPermitted('USER');
 
@@ -208,6 +211,8 @@ exports.fetchOne = function* fetchOneUser(next) {
 exports.updateStatus = function* updateUser(next) {
   debug(`updating status user: ${this.params.id}`);
 
+  return this.body = { message: 'Use PUT /users/:id' };
+
   let isPermitted = yield hasPermission(this.state._user, 'UPDATE');
   if(!isPermitted) {
       return this.throw(new CustomError({
@@ -278,6 +283,11 @@ exports.updateStatus = function* updateUser(next) {
 exports.update = function* updateUser(next) {
   debug(`updating user: ${this.params.id}`);
 
+  let query = {
+    _id: this.params.id
+  };
+  let body = this.request.body;
+
   let isPermitted = yield hasPermission(this.state._user, 'UPDATE');
   if(!isPermitted) {
       return this.throw(new CustomError({
@@ -286,10 +296,32 @@ exports.update = function* updateUser(next) {
       }));
   }
 
-  let query = {
-    _id: this.params.id
-  };
-  let body = this.request.body;
+  if(body.password) {
+    return this.throw(new CustomError({
+        type: 'UPDATE_USER_ERROR',
+        message: "Use PUT /users/:id/passwords to update password"
+      }));
+  }
+
+  if(body.status) {
+    this.checkBody('status')
+      .notEmpty('Status should not be empty')
+      .isIn(['suspended', 'active'], 'Status should be suspended or active')
+  } else if(body.username) {
+    this.checkBody('username')
+      .notEmpty('Status should not be empty');
+  } else if(body.password) {
+    this.checkBody('password')
+      .notEmpty('Password should not be empty')
+      .len(6, 'Password Must be at least 6 characters');
+  }
+
+  if(this.errors) {
+    return this.throw(new CustomError({
+      type: 'UPDATE_USER_ERROR',
+      message: JSON.stringify(this.errors)
+    }));
+  }
 
   try {
     let user = yield UserDal.update(query, body);
@@ -309,6 +341,79 @@ exports.update = function* updateUser(next) {
   } catch(ex) {
     return this.throw(new CustomError({
       type: 'UPDATE_USER_ERROR',
+      message: ex.message
+    }));
+
+  }
+
+};
+
+/**
+ * Update user password.
+ *
+ * @desc Fetch a user with the given id from the database
+ *       and update their password
+ *
+ * @param {Function} next Middleware dispatcher
+ */
+exports.updatePassword = function* updateUserPassword(next) {
+  debug(`updating password for user: ${this.params.id}` );
+
+  let query = {
+    _id: this.params.id
+  };
+  let body = this.request.body;
+
+  this.checkBody('old_password')
+      .notEmpty('Old Password should not be empty');
+  this.checkBody('new_password')
+      .notEmpty('New Password should not be empty')
+      .len(6, 'Password Must be at least 6 characters')
+
+  if(this.errors) {
+    return this.throw(new CustomError({
+      type: 'UPDATE_PASSWORD_ERROR',
+      message: JSON.stringify(this.errors)
+    }));
+  }
+
+  try {
+    let user = yield User.findOne(query).exec();
+    if(!user || !user._id) {
+      throw new Error('User Does Not Exist!!')
+    }
+
+    if(user._id.toString() != this.state._user._id.toString()) {
+      throw new Error('You Not Allowed to Complete this Action!')
+    }
+
+    let isMatch = yield user.verifyPassword(body.old_password);
+
+    if(!isMatch) {
+      throw new Error('Old Password Does Not Match!')
+    }
+
+    let hash    = yield UserDal.hashPasswd(body.new_password);
+    let update  = { password: hash };
+    query = { _id: user._id };
+
+    yield UserDal.update(query, update);
+    yield TokenDal.update({ user: user._id },{
+      revoked: true,
+      value: crypto.randomBytes(7).toString('base64')
+    })
+
+    yield LogDal.track({
+      event: 'user_password_update',
+      user: this.state._user._id ,
+      message: `Password Reset for ${user.email}`
+    });
+
+    this.body = { message : "Password Updated Successful" };
+
+  } catch(ex) {
+    return this.throw(new CustomError({
+      type: 'UPDATE_PASSWORD_ERROR',
       message: ex.message
     }));
 
