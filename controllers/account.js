@@ -213,6 +213,14 @@ exports.updatePhoto = function* updateAccountPhoto(next) {
 exports.fetchAllByPagination = function* fetchAllAccounts(next) {
   debug('get a collection of accounts by pagination');
 
+  let isPermitted = yield hasPermission(this.state._user, 'VIEW');
+  if(!isPermitted) {
+    return this.throw(new CustomError({
+      type: 'FETCH_PAGINATED_ACCOUNTS_COLLECTION_ERROR',
+      message: "You Don't have enough permissions to complete this action"
+    }));
+  }
+
   // retrieve pagination query params
   let page   = this.query.page || 1;
   let limit  = this.query.per_page || 10;

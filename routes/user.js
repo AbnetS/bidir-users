@@ -23,6 +23,7 @@ var router  = Router();
  * @apiParam {String} password Account Password
  * @apiParam {String} first_name First Name
  * @apiParam {String} last_name Last Name
+ * @apiParam {String} [title] Title
  * @apiParam {String} email Email Address
  * @apiParam {String} user_role Role name ie loan_officer
  * @apiParam {String} default_branch Default Branch for User

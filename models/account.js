@@ -15,6 +15,7 @@ var Schema = mongoose.Schema;
 var AccountSchema = new Schema({
   user:           { type: Schema.Types.ObjectId, ref: 'User' },
   picture:        { type: String, default: '' },
+  title:          { type: String, default: 'No Title' },
   gender:         { type: String, default: 'SELECT' },
   first_name:     { type: String, default: '' },
   last_name:      { type: String, default: '' },
@@ -41,6 +42,7 @@ AccountSchema.statics.attributes = {
   email: 1,
   first_name: 1,
   last_name: 1,
+  title: 1,
   phone: 1,
   picture: 1,
   gender: 1,

@@ -33,6 +33,7 @@ var router  = Router();
  * @apiSuccess {Object} default_branch Default Branch
  * @apisuccess {Array} access_branches Accessible Branches for the Account
  * @apiSuccess {Object} role Role for the Account with Permissions
+ * @apiSuccess {String} title Account Title
  *
  * @apiSuccessExample Response Example:
  *  {
@@ -44,6 +45,7 @@ var router  = Router();
  *	       _id : "556e1174a8952c9521286a60",
  *         ...
  *      },
+ *      title: "Senior Loan Officer",
  *    	first_name: "Mary",
  *    	last_name: "Jane",
  *    	email: "mary.jane@gmail.com",
@@ -88,6 +90,7 @@ router.get('/branches', acl(['*']), accountController.getBranchAccounts);
  * @apiSuccess {Object} default_branch Default Branch
  * @apisuccess {Array} access_branches Accessible Branches for the Account
  * @apiSuccess {Object} role Role for the Account with Permissions
+ * @apiSuccess {String} title Account Title
  *
  * @apiSuccessExample Response Example:
  *  {
@@ -101,6 +104,7 @@ router.get('/branches', acl(['*']), accountController.getBranchAccounts);
  *      },
  *    	first_name: "Mary",
  *    	last_name: "Jane",
+ *      title: "Senior Loan Officer",
  *    	email: "mary.jane@gmail.com",
  *    	phone: "095342345",
  *      picture: "https://mfi.com/assets/account_5736573.png",
@@ -140,6 +144,7 @@ router.get('/paginate', acl(['*']), accountController.fetchAllByPagination);
  * @apiSuccess {Object} default_branch Default Branch
  * @apisuccess {Array} access_branches Accessible Branches for the Account
  * @apiSuccess {Object} role Role for the Account with Permissions
+ * @apiSuccess {String} title Account Title
  *
  * @apiSuccessExample Response Example:
  *  {
@@ -150,6 +155,7 @@ router.get('/paginate', acl(['*']), accountController.fetchAllByPagination);
  *      },
  *    	first_name: "Mary",
  *    	last_name: "Jane",
+ *      title: "Senior Loan Officer",
  *    	email: "mary.jane@gmail.com",
  *    	phone: "095342345",
  *      picture: "https://mfi.com/assets/account_5736573.png",
@@ -197,6 +203,7 @@ router.get('/:id', acl(['*']), accountController.fetchOne);
  * @apiSuccess {Object} default_branch Default Branch
  * @apisuccess {Array} access_branches Accessible Branches for the Account
  * @apiSuccess {Object} role Role for the Account with Permissions
+ * @apiSuccess {String} title Account Title
  *
  * @apiSuccessExample Response Example:
  *  {
@@ -207,6 +214,7 @@ router.get('/:id', acl(['*']), accountController.fetchOne);
  *      },
  *    	first_name: "Mary",
  *    	last_name: "Jane",
+ *      title: "Senior Loan Officer",
  *    	email: "mary.jane@gmail.com",
  *    	phone: "095342345",
  *      picture: "https://mfi.com/assets/account_5736573.png",
@@ -252,6 +260,7 @@ router.put('/:id', acl(['*']), accountController.update);
  * @apiSuccess {Object} default_branch Default Branch
  * @apisuccess {Array} access_branches Accessible Branches for the Account
  * @apiSuccess {Object} role Role for the Account with Permissions
+ * @apiSuccess {String} title Account Title
  *
  * @apiSuccessExample Response Example:
  *  {
@@ -262,6 +271,7 @@ router.put('/:id', acl(['*']), accountController.update);
  *      },
  *    	first_name: "Mary",
  *    	last_name: "Jane",
+ *      title: "Senior Loan Officer",
  *    	email: "mary.jane@gmail.com",
  *    	phone: "095342345",
  *      picture: "https://mfi.com/assets/account_5736573.png",
