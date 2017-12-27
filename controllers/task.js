@@ -73,14 +73,6 @@ exports.fetchOne = function* fetchOneTask(next) {
 exports.updateStatus = function* updateTask(next) {
   debug(`updating status task: ${this.params.id}`);
 
-  let isPermitted = yield hasPermission(this.state._user, 'AUTHORIZE');
-  if(!isPermitted) {
-    return this.throw(new CustomError({
-      type: 'TASK_STATUS_UPDATE_ERROR',
-      message: "You Don't have enough permissions to complete this action"
-    }));
-  }
-
   this.checkBody('status')
       .notEmpty('Status should not be empty');
 
@@ -104,17 +96,27 @@ exports.updateStatus = function* updateTask(next) {
   if(task.entity_type === 'screening') {
       this.checkBody('status')
           .isIn(['approved', 'declined_final', 'declined_under_review'], 'Required status types for screening task is approved, declined_final or declined_under_review');
-  }
-
-  if(task.entity_type === 'loan') {
+  } else if(task.entity_type === 'loan') {
       this.checkBody('status')
           .isIn(['accepted', 'declined_final', 'declined_under_review'], 'Required status types for screening task is accepted, declined_final or declined_under_review');
+  } else {
+    this.checkBody('status')
+          .isIn(['completed', 'cancelled'], 'Required status types for task is completed or cancelled');
   }
 
   if(this.errors) {
     return this.throw(new CustomError({
       type: 'TASK_STATUS_UPDATE_ERROR',
       message: JSON.stringify(this.errors)
+    }));
+  }
+
+  let isReview = task.task_type == 'review';
+  let isPermitted = yield hasPermission(this.state._user, 'AUTHORIZE');
+  if(!isReview && !isPermitted) {
+    return this.throw(new CustomError({
+      type: 'TASK_STATUS_UPDATE_ERROR',
+      message: "You Don't have enough permissions to complete this action"
     }));
   }
 
@@ -135,6 +137,7 @@ exports.updateStatus = function* updateTask(next) {
             message: `Screening Application of ${client.first_name} ${client.last_name} has been approved`,
             task_ref: task._id
           });
+          task = yield TaskDal.update(query, { status: 'completed', comment: body.comment });
 
 
         } else if(body.status === 'declined_final') {
@@ -145,18 +148,29 @@ exports.updateStatus = function* updateTask(next) {
             message: `Screening Application of ${client.first_name} ${client.last_name} has been declined in Final`,
             task_ref: task._id
           });
+          task = yield TaskDal.update(query, { status: 'completed', comment: body.comment });
 
         } else if(body.status === 'declined_under_review') {
           screening = yield ScreeningDal.update({ _id: screening._id }, { status: 'inprogress' });
           client    = yield ClientDal.update({ _id: client._id }, { status: 'ineligible' });
+          task = yield TaskDal.update(query, { status: 'completed', comment: body.comment });
+          console.log(task);
+          // Create Review Task
+          let _task = yield TaskDal.create({
+            task: `Review Screening Application of ${client.first_name} ${client.last_name}`,
+            task_type: 'review',
+            entity_ref: screening._id,
+            entity_type: 'screening',
+            created_by: this.state._user._id,
+            user: task.created_by
+          })
           yield NotificationDal.create({
-            for: task.created_by,
+            for: this.state._user._id,
             message: `Screening Application of ${client.first_name} ${client.last_name} has been declined For Further Review`,
             task_ref: task._id
           });
         }
 
-        task = yield TaskDal.update(query, { status: 'done', comment: body.comment });
         break;
       case 'loan':
         let loan      = yield LoanDal.get({ _id: task.entity_ref });
@@ -168,8 +182,9 @@ exports.updateStatus = function* updateTask(next) {
           yield NotificationDal.create({
             for: task.created_by,
             message: `Loan Application of ${client.first_name} ${client.last_name} has been accepted`,
-            task_ref: task._id
+            task_ref: _task._id
           });
+          task = yield TaskDal.update(query, { status: 'completed', comment: body.comment });
 
 
         } else if(body.status === 'declined_final') {
@@ -180,19 +195,33 @@ exports.updateStatus = function* updateTask(next) {
             message: `Loan Application  of ${client.first_name} ${client.last_name} has been declined in Final`,
             task_ref: task._id
           });
+          task = yield TaskDal.update(query, { status: 'completed', comment: body.comment });
 
         } else if(body.status === 'declined_under_review') {
           loan      = yield LoanDal.update({ _id: loan._id }, { status: body.status });
           client    = yield ClientDal.update({ _id: client._id }, { status: 'loan_application_inprogress' });
+          task = yield TaskDal.update(query, { status: 'completed', comment: body.comment });
+          // Create Review Task
+          let _task = yield TaskDal.create({
+            task: `Review Loan Application of ${client.first_name} ${client.last_name}`,
+            task_type: 'review',
+            entity_ref: loan._id,
+            entity_type: 'loan',
+            created_by: this.state._user._id,
+            user: task.created_by
+          })
           yield NotificationDal.create({
-            for: task.created_by,
+            for: this.state._user._id,
             message: `Loan Application of ${client.first_name} ${client.last_name} has been declined For Further Review`,
-            task_ref: task._id
+            task_ref: _task._id
           });
 
         }
 
-        task = yield TaskDal.update(query, { status: 'done', comment: body.comment });
+        break;
+
+      default:
+        task = yield TaskDal.update(query, { status: body.status , comment: body.comment });
         break;
     }
 
