@@ -154,7 +154,6 @@ exports.updateStatus = function* updateTask(next) {
           screening = yield ScreeningDal.update({ _id: screening._id }, { status: 'inprogress' });
           client    = yield ClientDal.update({ _id: client._id }, { status: 'ineligible' });
           task = yield TaskDal.update(query, { status: 'completed', comment: body.comment });
-          console.log(task);
           // Create Review Task
           let _task = yield TaskDal.create({
             task: `Review Screening Application of ${client.first_name} ${client.last_name}`,
@@ -217,7 +216,6 @@ exports.updateStatus = function* updateTask(next) {
           });
 
         }
-
         break;
 
       default:
@@ -323,7 +321,11 @@ exports.fetchAllByPagination = function* fetchAllTasks(next) {
 
     let tasks = yield TaskDal.getCollectionByPagination(query, opts);
 
-    this.body = tasks;
+    this.body = {
+      tasks: tasks,
+      query: query,
+      isAuthorized: isAuthorized
+    }
 
   } catch(ex) {
     return this.throw(new CustomError({
