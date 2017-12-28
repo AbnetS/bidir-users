@@ -305,7 +305,7 @@ exports.fetchAllByPagination = function* fetchAllTasks(next) {
     sort: sort
   };
 
-  let isAuthorized = yield hasPermission(this.state._user, 'AUTHORIZE');
+  let isAuthorized = yield checkPermissions.hasPermission(this.state._user, 'AUTHORIZE');
 
   try {
 
