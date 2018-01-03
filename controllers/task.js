@@ -28,8 +28,6 @@ const NotificationDal    = require('../dal/notification');
 const ClientDal          = require('../dal/client');
 const LoanDal            = require('../dal/loan');
 
-let hasPermission = checkPermissions.isPermitted('TASK');
-
 /**
  * Get a single task.
  *
@@ -73,16 +71,6 @@ exports.fetchOne = function* fetchOneTask(next) {
 exports.updateStatus = function* updateTask(next) {
   debug(`updating status task: ${this.params.id}`);
 
-  this.checkBody('status')
-      .notEmpty('Status should not be empty');
-
-  if(this.errors) {
-    return this.throw(new CustomError({
-      type: 'TASK_STATUS_UPDATE_ERROR',
-      message: JSON.stringify(this.errors)
-    }));
-  }
-
   let query = {
     _id: this.params.id
   };
@@ -95,12 +83,15 @@ exports.updateStatus = function* updateTask(next) {
 
   if(task.entity_type === 'screening') {
       this.checkBody('status')
+          .notEmpty('Status should not be empty')
           .isIn(['approved', 'declined_final', 'declined_under_review'], 'Required status types for screening task is approved, declined_final or declined_under_review');
   } else if(task.entity_type === 'loan') {
       this.checkBody('status')
+          .notEmpty('Status should not be empty')
           .isIn(['accepted', 'declined_final', 'declined_under_review'], 'Required status types for screening task is accepted, declined_final or declined_under_review');
   } else {
     this.checkBody('status')
+          .notEmpty('Status should not be empty')
           .isIn(['completed', 'cancelled'], 'Required status types for task is completed or cancelled');
   }
 
@@ -111,13 +102,23 @@ exports.updateStatus = function* updateTask(next) {
     }));
   }
 
-  let isReview = task.task_type == 'review';
-  let isPermitted = yield hasPermission(this.state._user, 'AUTHORIZE');
-  if(!isReview && !isPermitted) {
-    return this.throw(new CustomError({
-      type: 'TASK_STATUS_UPDATE_ERROR',
-      message: "You Don't have enough permissions to complete this action"
-    }));
+  if(task.task_type != 'review') {
+    let isPermitted = false;
+    if(task.entity_type == 'screening') {
+      let hasPermission = checkPermissions.isPermitted('SCREENING');
+      isPermitted = yield hasPermission(this.state._user, 'AUTHORIZE');
+      
+    } else if(task.entity_type == 'loan') {
+      let hasPermission = checkPermissions.isPermitted('LOAN');
+      isPermitted = yield hasPermission(this.state._user, 'AUTHORIZE');
+    }
+
+    if(!isPermitted) {
+      return this.throw(new CustomError({
+        type: 'TASK_STATUS_UPDATE_ERROR',
+        message: "You Don't have enough permissions to complete this action"
+      }));
+    }
   }
 
   try {

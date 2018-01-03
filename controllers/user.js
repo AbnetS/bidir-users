@@ -464,15 +464,11 @@ exports.fetchAllByPagination = function* fetchAllUsers(next) {
     let user = this.state._user;
     let account = yield Account.findOne({ user: user._id }).exec();
     
-    if(user.role != 'super' && user.realm != 'super') {
-      if(account.access_branches.length) {
-        query.access_branches = { $in: account.access_branches };
+    
 
-      } else if(account.default_branch) {
-        query.default_branch = account.default_branch;
+    query.default_branch = account.default_branch;
 
-      }
-    }
+    console.log(query);
     
     let accounts = yield AccountDal.getCollectionByPagination(query, opts);
 

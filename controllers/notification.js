@@ -24,8 +24,6 @@ const AccountDal         = require('../dal/account');
 const ScreeningDal       = require('../dal/screening');
 const NotificationDal    = require('../dal/notification');
 
-let hasPermission = checkPermissions.isPermitted('TASK');
-
 /**
  * Get a single notification.
  *
@@ -107,7 +105,6 @@ exports.update = function* updateNotification(next) {
 exports.fetchAllByPagination = function* fetchAllNotifications(next) {
   debug('get a collection of notifications by pagination');
 
-  let isAuthorized = yield hasPermission(this.state._user, 'AUTHORIZE');
 
   // retrieve pagination query params
   let page   = this.query.page || 1;
@@ -126,8 +123,10 @@ exports.fetchAllByPagination = function* fetchAllNotifications(next) {
 
   try {
 
-    if(!isAuthorized) {
-      query.for = this.state._user._id;
+    let user = this.state._user;
+    
+    if(user.role != 'super' && user.realm != 'super') {
+      query.for = user._id;
     }
 
     let notifications = yield NotificationDal.getCollectionByPagination(query, opts);
