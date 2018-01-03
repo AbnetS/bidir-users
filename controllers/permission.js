@@ -40,7 +40,7 @@ exports.create = function* createPermission(next) {
       .notEmpty('Permission Entity is empty');
    this.checkBody('operation')
       .notEmpty('Permission operation is empty')
-      .isIn(['VIEW', 'CREATE', 'UPDATE', 'ARCHIVE', 'AUTHORIZE'], 'Permission Operations are VIEW, CREATE, UPDATE, ARCHIVE and AUTHORIZE');
+      .isIn(['VIEW', 'CREATE', 'UPDATE', 'ARCHIVE', 'AUTHORIZE', 'ACTIVATE', 'DEACTIVATE'], 'Permission Operations are VIEW, CREATE, UPDATE, ARCHIVE, ACTIVATE, DEACTIVATE and AUTHORIZE');
 
   if(this.errors) {
     return this.throw(new CustomError({
@@ -116,8 +116,6 @@ exports.fetchOne = function* fetchOnePermission(next) {
 exports.updateStatus = function* updatePermission(next) {
   debug(`updating status permission: ${this.params.id}`);
 
-  this.checkBody('is_active')
-      .notEmpty('is_active should not be empty');
 
   let query = {
     _id: this.params.id
