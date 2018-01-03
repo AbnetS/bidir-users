@@ -320,7 +320,6 @@ exports.fetchAllByPagination = function* fetchAllTasks(next) {
     }
 
     let tasks = yield TaskDal.getCollectionByPagination(query, opts);
-    let account = yield AccountDal.get({ user: this.state._user });
 
     this.body = tasks;
 

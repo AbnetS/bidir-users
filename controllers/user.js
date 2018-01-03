@@ -20,6 +20,7 @@ const googleBuckets      = require('../lib/google-buckets');
 const checkPermissions   = require('../lib/permissions');
 
 const User               = require('../models/user');
+const Account            = require('../models/account');
 
 const UserDal            = require('../dal/user');
 const LogDal             = require('../dal/log');
@@ -459,14 +460,41 @@ exports.fetchAllByPagination = function* fetchAllUsers(next) {
   };
 
   try {
+
+    let user = this.state._user;
+    let account = yield Account.findOne({ user: user._id }).exec();
     
-    let users = yield UserDal.getCollectionByPagination(query, opts);
+    if(user.role != 'super' && user.realm != 'super') {
+      if(account.access_branches.length) {
+        query.access_branches = { $in: account.access_branches };
+
+      } else if(account.default_branch) {
+        query.default_branch = account.default_branch;
+
+      }
+    }
+    
+    let accounts = yield AccountDal.getCollectionByPagination(query, opts);
+
+    let users = {
+      total_pages: accounts.total_pages,
+      total_docs_count: accounts.total_docs_count,
+      current_page: accounts.current_page,
+      docs: []
+    }
+
+    for(let account of accounts.docs) {
+      let user = yield UserDal.get({ _id: account.user._id });
+
+      users.docs.push(user);
+    }
+
 
     this.body = users;
 
   } catch(ex) {
     return this.throw(new CustomError({
-      type: 'USERS_COLLECTION_ERROR',
+      type: 'VIEW_USERS_COLLECTION_ERROR',
       message: ex.message
     }));
   }
