@@ -162,7 +162,8 @@ exports.updateStatus = function* updateTask(next) {
             entity_ref: screening._id,
             entity_type: 'screening',
             created_by: this.state._user._id,
-            user: task.created_by
+            user: task.created_by,
+            comment: body.comment
           })
           yield NotificationDal.create({
             for: this.state._user._id,
@@ -208,7 +209,8 @@ exports.updateStatus = function* updateTask(next) {
             entity_ref: loan._id,
             entity_type: 'loan',
             created_by: this.state._user._id,
-            user: task.created_by
+            user: task.created_by,
+            comment: body.comment
           })
           yield NotificationDal.create({
             for: this.state._user._id,
