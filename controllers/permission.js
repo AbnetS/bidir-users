@@ -40,7 +40,7 @@ exports.create = function* createPermission(next) {
       .notEmpty('Permission Entity is empty');
    this.checkBody('operation')
       .notEmpty('Permission operation is empty')
-      .isIn(['VIEW', 'CREATE', 'UPDATE', 'ARCHIVE', 'AUTHORIZE', 'ACTIVATE', 'DEACTIVATE'], 'Permission Operations are VIEW, CREATE, UPDATE, ARCHIVE, ACTIVATE, DEACTIVATE and AUTHORIZE');
+      .isIn(['VIEW', 'CREATE', 'UPDATE', 'ARCHIVE', 'AUTHORIZE', 'ACTIVATE', 'DEACTIVATE', 'VIEW_ALL'], 'Permission Operations are VIEW, CREATE, UPDATE, ARCHIVE, ACTIVATE, VIEW_ALL, DEACTIVATE and AUTHORIZE');
 
   if(this.errors) {
     return this.throw(new CustomError({
