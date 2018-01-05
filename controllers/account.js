@@ -243,12 +243,14 @@ exports.fetchAllByPagination = function* fetchAllAccounts(next) {
     let account = yield Account.findOne({ user: user._id }).exec();
     
     if(user.role != 'super' && user.realm != 'super') {
-      if(account.access_branches.length) {
-        query.access_branches = { $in: account.access_branches };
+      if(!account.multi_branch) {
+        if(account.access_branches.length) {
+          query.access_branches = { $in: account.access_branches };
 
-      } else if(account.default_branch) {
-        query.default_branch = account.default_branch;
+        } else if(account.default_branch) {
+          query.default_branch = account.default_branch;
 
+        }
       }
     }
 
