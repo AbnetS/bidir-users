@@ -308,19 +308,45 @@ exports.fetchAllByPagination = function* fetchAllTasks(next) {
     sort: sort
   };
 
-  let isAuthorized = yield checkPermissions.hasPermission(this.state._user, 'AUTHORIZE');
+  let screeningPermission =  checkPermissions.isPermitted('SCREENING');
+  let loanPermission =  checkPermissions.isPermitted('LOAN');
+
+  let canViewScreening =  yield screeningPermission(this.state._user, 'AUTHORIZE');
+  let canViewLoan = yield loanPermission(this.state._user, 'AUTHORIZE')
+
 
   try {
 
-    if(isAuthorized) {
-      query = {
-        user: { $in: [null, this.state._user._id ] }
-      };
+    if(this.state._user.role == 'super' || this.state._user.realm == 'super') {
+      query = {};
+
     } else {
-      query = {
-        user: this.state._user._id
-      };
+      if(canViewLoan && canViewScreening) {
+        query = {
+          user: { $in: [null, this.state._user._id ] },
+          entity_type: { $in: ['screening', 'loan'] }
+        };
+
+      } else if(canViewScreening) {
+        query = {
+          user: { $in: [null, this.state._user._id ] },
+          entity_type: 'screening'
+        };
+      } else if(canViewLoan) {
+        query = {
+          user: { $in: [null, this.state._user._id ] },
+          entity_type: 'loan'
+        };
+
+      } else {
+        query = {
+          user: this.state._user._id
+        };
+      }
+
     }
+
+    console.log(query);
 
     let tasks = yield TaskDal.getCollectionByPagination(query, opts);
 

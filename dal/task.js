@@ -155,8 +155,6 @@ exports.getCollectionByPagination = function getCollection(query, qs) {
     limit:    qs.limit
   };
 
-  console.log(opts);
-
 
   return new Promise((resolve, reject) => {
     Task.paginate(query, opts, function (err, docs) {
