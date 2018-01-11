@@ -125,6 +125,63 @@ var router  = Router();
 router.get('/paginate', acl(['*']), accountController.fetchAllByPagination);
 
 /**
+ * @api {get} /users/accounts/search?page=<RESULTS_PAGE>&per_page=<RESULTS_PER_PAGE> Search accounts
+ * @apiVersion 1.0.0
+ * @apiName Search
+ * @apiGroup Account
+ *
+ * @apiDescription Get a collection of accounts. The endpoint has pagination
+ * out of the box. Use these params to query with pagination: `page=<RESULTS_PAGE`
+ * and `per_page=<RESULTS_PER_PAGE>`.
+ *
+ * @apiSuccess {String} _id account id
+ * @apiSuccess {Object} user User Data Object
+ * @apiSuccess {String} picture Picture URL
+ * @apiSuccess {String} first_name First name
+ * @apiSuccess {String} last_name Last Name
+ * @apiSuccess {String} email Email Address
+ * @apiSuccess {String} phone Phone Number
+ * @apiSuccess {String} gender Gender "Male" or "Female"
+ * @apiSuccess {Boolean} multi_branches Multiple Branches 
+ * @apiSuccess {Object} default_branch Default Branch
+ * @apisuccess {Array} access_branches Accessible Branches for the Account
+ * @apiSuccess {Object} role Role for the Account with Permissions
+ * @apiSuccess {String} title Account Title
+ *
+ * @apiSuccessExample Response Example:
+ *  {
+ *    "total_pages": 1,
+ *    "total_docs_count": 0,
+ *    "docs": [{
+ *      _id : "556e1174a8952c9521286a60",
+ *      user : {
+ *         _id : "556e1174a8952c9521286a60",
+ *         ...
+ *      },
+ *      first_name: "Mary",
+ *      last_name: "Jane",
+ *      title: "Senior Loan Officer",
+ *      email: "mary.jane@gmail.com",
+ *      phone: "095342345",
+ *      picture: "https://mfi.com/assets/account_5736573.png",
+ *      gender: "SELECT",
+ *      multi_branches: false,
+ *      default_branch: {
+ *          _id : "556e1174a8952c9521286a60",
+ *          ...
+ *      },
+ *      access_branches: [],
+ *      role: {
+ *      _id : "556e1174a8952c9521286a60",
+ *          ...
+ *      },
+ *    }]
+ *  }
+ */
+router.get('/search', acl(['*']), accountController.search);
+
+
+/**
  * @api {get} /users/accounts/:id Get Account Account
  * @apiVersion 1.0.0
  * @apiName Get

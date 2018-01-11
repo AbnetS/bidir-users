@@ -265,3 +265,65 @@ exports.fetchAllByPagination = function* fetchAllAccounts(next) {
     }));
   }
 };
+
+/**
+ * Search accounts
+ *
+ * @desc Fetch a collection of accounts
+ *
+ * @param {Function} next Middleware dispatcher
+ */
+exports.search = function* searchAccounts(next) {
+  debug('search accounts');
+
+  // retrieve pagination query params
+  let page   = this.query.page || 1;
+  let limit  = this.query.per_page || 10;
+  let query = {};
+
+  let sortType = this.query.sort_by;
+  let sort = {};
+  sortType ? (sort[sortType] = -1) : (sort.date_created = -1 );
+
+  let opts = {
+    page: +page,
+    limit: +limit,
+    sort: sort
+  };
+
+  try {
+    let searchTerm = this.query.search;
+    if(!searchTerm) {
+      throw new Error('Please Provide A Search Term');
+    }
+
+    query = {
+      $or: [{
+        title: searchTerm
+      },{
+        gender: searchTerm
+      },{
+        first_name: searchTerm
+      },{
+        last_name: searchTerm
+      },{
+        phone: searchTerm
+      },{
+        email: searchTerm
+      },{
+        grandfather_name: searchTerm
+      }]
+    }
+
+    
+    let accounts = yield AccountDal.getCollectionByPagination(query, opts);
+
+    this.body = accounts;
+
+  } catch(ex) {
+    return this.throw(new CustomError({
+      type: 'SEARCH_ACCOUNTS_ERROR',
+      message: ex.message
+    }));
+  }
+};

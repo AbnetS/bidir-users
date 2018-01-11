@@ -124,6 +124,53 @@ router.post('/create', acl('*'), userController.create);
 router.get('/paginate', acl(['*']), userController.fetchAllByPagination);
 
 /**
+ * @api {get} /users/search?page=<RESULTS_PAGE>&per_page=<RESULTS_PER_PAGE> Search users
+ * @apiVersion 1.0.0
+ * @apiName Search
+ * @apiGroup User
+ *
+ * @apiDescription Get a collection of users by search. The endpoint has pagination
+ * out of the box. Use these params to query with pagination: `page=<RESULTS_PAGE`
+ * and `per_page=<RESULTS_PER_PAGE>`.
+ *
+ * @apiSuccess {String} _id user id
+ * @apiSuccess {Object} account Account Data
+ * @apiSuccess {String} role User Role
+ * @apiSuccess {String} realm User Realm
+ * @apiSuccess {String} last_login Last Login Time Stamp
+ *
+ * @apiSuccessExample Response Example:
+ *  {
+ *    "total_pages": 1,
+ *    "total_docs_count": 0,
+ *    "docs": [{
+ *    _id : "556e1174a8952c9521286a60"
+ *    username: "mary.jane@gmail.com",
+ *    last_login: '2017-03-16T10:50:52.305Z',
+ *    role: "loan_officer",
+ *    realm: "user",
+ *    account: {
+ *      _id : "556e1174a8952c9521286a60",
+ *      user : "556e1174a8952c9521286a60",
+ *      first_name: "Mary",
+ *      last_name: "Jane",
+ *      email: "mary.jane@gmail.com",
+ *      phone: "095342345",
+ *      picture: "https://mfi.com/assets/account_5736573.png",
+ *      gender: "SELECT",
+ *      multi_branch: false,
+ *      default_branch: "556e1174a8952c9521286a60",
+ *      access_branches: [],
+ *      roles: [556e1174a8952c9521286a60],
+ *      ...
+ *    }
+ *    }]
+ *  }
+ */
+router.get('/search', acl(['*']), userController.search);
+
+
+/**
  * @api {put} /users/:id/passwords Update User Password
  * @apiVersion 1.0.0
  * @apiName UpdatePassword
