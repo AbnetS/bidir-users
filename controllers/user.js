@@ -580,6 +580,10 @@ exports.search = function* searchUsers(next) {
       throw new Error('Please Provide A Search Term');
     }
 
+    searchTerm = { $regex: new RegExp(`${searchTerm}`), $options: 'i' };
+
+    console.log(searchTerm);
+
     query = {
       $or: [{
         title: searchTerm
