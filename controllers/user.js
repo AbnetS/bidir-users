@@ -582,8 +582,6 @@ exports.search = function* searchUsers(next) {
 
     searchTerm = { $regex: new RegExp(`${searchTerm}`), $options: 'i' };
 
-    console.log(searchTerm);
-
     query = {
       $or: [{
         title: searchTerm
