@@ -242,8 +242,8 @@ exports.fetchAllByPagination = function* fetchAllAccounts(next) {
     let user = this.state._user;
     let account = yield Account.findOne({ user: user._id }).exec();
     
-    if(user.role != 'super' && user.realm != 'super') {
-      if(!account.multi_branch) {
+    if(account) {
+      if(!account.multi_branches) {
         if(account.access_branches.length) {
           query.access_branches = { $in: account.access_branches };
 
@@ -276,6 +276,14 @@ exports.fetchAllByPagination = function* fetchAllAccounts(next) {
 exports.search = function* searchAccounts(next) {
   debug('search accounts');
 
+  let isPermitted = yield hasPermission(this.state._user, 'VIEW');
+  if(!isPermitted) {
+      return this.throw(new CustomError({
+        type: 'SEARCH_ACCOUNTS_ERROR',
+        message: "You Don't have enough permissions to complete this action"
+      }));
+  }
+
   // retrieve pagination query params
   let page   = this.query.page || 1;
   let limit  = this.query.per_page || 10;
@@ -292,6 +300,21 @@ exports.search = function* searchAccounts(next) {
   };
 
   try {
+    let user = this.state._user;
+    let account = yield Account.findOne({ user: user._id }).exec();
+
+     if(account) {
+        if(!account.multi_branches) {
+          if(account.access_branches.length) {
+            query.access_branches = { $in: account.access_branches };
+
+          } else if(account.default_branch) {
+            query.default_branch = account.default_branch;
+
+          }
+        }
+      }
+
     let searchTerm = this.query.search;
     if(!searchTerm) {
       throw new Error('Please Provide A Search Term');
