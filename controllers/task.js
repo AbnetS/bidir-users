@@ -18,6 +18,7 @@ const config             = require('../config');
 const CustomError        = require('../lib/custom-error');
 const checkPermissions   = require('../lib/permissions');
 
+const Account            = require('../models/account');
 
 const LogDal             = require('../dal/log');
 const TaskDal            = require('../dal/task');
@@ -163,7 +164,8 @@ exports.updateStatus = function* updateTask(next) {
             entity_type: 'screening',
             created_by: this.state._user._id,
             user: task.created_by,
-            comment: body.comment
+            comment: body.comment,
+            branch: screening.branch
           })
           yield NotificationDal.create({
             for: this.state._user._id,
@@ -210,7 +212,8 @@ exports.updateStatus = function* updateTask(next) {
             entity_type: 'loan',
             created_by: this.state._user._id,
             user: task.created_by,
-            comment: body.comment
+            comment: body.comment,
+            branch: loan.branch
           })
           yield NotificationDal.create({
             for: this.state._user._id,
@@ -316,11 +319,10 @@ exports.fetchAllByPagination = function* fetchAllTasks(next) {
 
 
   try {
+    let user = this.state._user;
+    let account = yield Account.findOne({ user: user._id }).exec();
 
-    if(this.state._user.role == 'super' || this.state._user.realm == 'super') {
-      query = {};
-
-    } else {
+    if(account) {
       if(canViewLoan && canViewScreening) {
         query = {
           user: { $in: [null, this.state._user._id ] },
@@ -344,9 +346,14 @@ exports.fetchAllByPagination = function* fetchAllTasks(next) {
         };
       }
 
-    }
+      if(account.access_branches.length) {
+          query.branch = { $in: account.access_branches };
 
-    console.log(query);
+      } else if(account.default_branch) {
+          query.branch = account.default_branch;
+
+      }
+    }
 
     let tasks = yield TaskDal.getCollectionByPagination(query, opts);
 

@@ -9,8 +9,9 @@ const moment  = require('moment');
 const _       = require('lodash');
 const co      = require('co');
 
-const Loan     = require('../models/loan');
+const Loan          = require('../models/loan');
 const Answer        = require('../models/answer');
+const Client        = require('../models/client');
 const mongoUpdate   = require('../lib/mongo-update');
 
 var returnFields = Loan.attributes;
@@ -21,6 +22,9 @@ var population = [{
     path: 'sub_answers',
     select: Answer.attributes
   }
+},{
+  path: 'client',
+  select: Client.attributes
 }];
 
 /**

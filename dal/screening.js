@@ -9,15 +9,22 @@ const moment  = require('moment');
 const _       = require('lodash');
 const co      = require('co');
 
-const Screening    = require('../models/screening');
-const Answer = require('../models/answer');
+const Screening     = require('../models/screening');
+const Answer        = require('../models/answer');
+const Client        = require('../models/client');
 const mongoUpdate   = require('../lib/mongo-update');
 
 var returnFields = Screening.attributes;
-
 var population = [{
   path: 'answers',
-  select: Answer.attributes
+  select: Answer.attributes,
+  populate: {
+    path: 'sub_answers',
+    select: Answer.attributes
+  }
+},{
+  path: 'client',
+  select: Client.attributes
 }];
 
 /**
@@ -156,7 +163,7 @@ exports.getCollectionByPagination = function getCollection(query, qs) {
 
   let opts = {
     select:  returnFields,
-    sortBy:   qs.sort || {},
+    sort:   qs.sort || {},
     populate: population,
     page:     qs.page,
     limit:    qs.limit
