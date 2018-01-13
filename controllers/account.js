@@ -320,25 +320,36 @@ exports.search = function* searchAccounts(next) {
       throw new Error('Please Provide A Search Term');
     }
 
-    searchTerm = { $regex: new RegExp(`${searchTerm}`), $options: 'i' };
+    query.$or = [];
 
-    query = {
-      $or: [{
-        title: searchTerm
-      },{
-        gender: searchTerm
-      },{
-        first_name: searchTerm
-      },{
-        last_name: searchTerm
-      },{
-        phone: searchTerm
-      },{
-        email: searchTerm
-      },{
-        grandfather_name: searchTerm
-      }]
+    let terms = searchTerm.split(/\s+/);
+    let groupTerms = { $in: [] };
+
+    for(let term of terms) {
+      if(validator.isMongoId(term)) {
+        throw new Error('IDs are not supported for Search');
+      }
+
+      term = new RegExp(`${term}`, 'i')
+
+      groupTerms.$in.push(term);
     }
+
+    query.$or = [{
+        title: groupTerms
+      },{
+        gender: groupTerms
+      },{
+        first_name: groupTerms
+      },{
+        last_name: groupTerms
+      },{
+        phone: groupTerms
+      },{
+        email: groupTerms
+      },{
+        grandfather_name: groupTerms
+      }];
 
     
     let accounts = yield AccountDal.getCollectionByPagination(query, opts);
