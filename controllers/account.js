@@ -48,6 +48,18 @@ exports.fetchOne = function* fetchOneAccount(next) {
 
   try {
     let account = yield AccountDal.get(query);
+    if(!account) {
+      throw new Error('Account Does Not Exist!!')
+    }
+
+    account = account.toJSON();
+
+    if(account.multi_branches) {
+      let branches  = yield BranchDal.getCollection({});
+
+      account.access_branches = branches.slice();
+
+    }
 
     yield LogDal.track({
       event: 'view_account',
@@ -97,6 +109,15 @@ exports.update = function* updateAccount(next) {
     }
 
     account = yield AccountDal.update(query, body);
+
+    account = account.toJSON();
+
+    if(account.multi_branches) {
+      let branches  = yield BranchDal.getCollection({});
+
+      account.access_branches = branches.slice();
+
+    }
 
     yield LogDal.track({
       event: 'account_update',

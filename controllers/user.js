@@ -6,13 +6,13 @@ const crypto  = require('crypto');
 const path    = require('path');
 const url     = require('url');
 
-const debug      = require('debug')('api:user-controller');
-const moment     = require('moment');
-const jsonStream = require('streaming-json-stringify');
-const _          = require('lodash');
-const co         = require('co');
-const del        = require('del');
-const validator  = require('validator');
+const debug              = require('debug')('api:user-controller');
+const moment             = require('moment');
+const jsonStream         = require('streaming-json-stringify');
+const _                  = require('lodash');
+const co                 = require('co');
+const del                = require('del');
+const validator          = require('validator');
 
 const config             = require('../config');
 const CustomError        = require('../lib/custom-error');
@@ -25,13 +25,13 @@ const Account            = require('../models/account');
 const UserDal            = require('../dal/user');
 const LogDal             = require('../dal/log');
 const BranchDal          = require('../dal/branch');
-const RoleDal           = require('../dal/role');
+const RoleDal            = require('../dal/role');
 const PermissionDal      = require('../dal/permission');
-const AccountDal        = require('../dal/account');
-const TaskDal           = require('../dal/task');
-const TokenDal          = require('../dal/token');
+const AccountDal         = require('../dal/account');
+const TaskDal            = require('../dal/task');
+const TokenDal           = require('../dal/token');
 
-let hasPermission = checkPermissions.isPermitted('USER');
+let hasPermission        = checkPermissions.isPermitted('USER');
 
 /**
  * Create a user.
@@ -184,7 +184,16 @@ exports.fetchOne = function* fetchOneUser(next) {
   };
 
   try {
-    let user = yield UserDal.get(query);
+    let user = yield UserDal.get(query, true);
+
+    user = user.toJSON();
+
+    if(user.account && user.account.multi_branches) {
+      let branches  = yield BranchDal.getCollection({});
+
+      user.account.access_branches = branches.slice();
+
+    }
 
     yield LogDal.track({
       event: 'view_user',
@@ -252,6 +261,7 @@ exports.updateStatus = function* updateUser(next) {
       })
     } else {
       yield UserDal.update(query, body);
+
     }
 
     yield LogDal.track({
@@ -328,6 +338,15 @@ exports.update = function* updateUser(next) {
     let user = yield UserDal.update(query, body);
     if(!user || !user._id) {
       throw new Error('User Does Not Exist!!')
+    }
+
+    user = user.toJSON();
+
+    if(user.account && user.account.multi_branches) {
+      let branches  = yield BranchDal.getCollection({});
+
+      user.account.access_branches = branches.slice();
+
     }
 
     yield LogDal.track({
