@@ -126,15 +126,9 @@ exports.get = function get(query, branch) {
 exports.getCollection = function getCollection(query, qs) {
   debug('fetching a collection of branchs');
 
-  return new Promise((resolve, reject) => {
-    resolve(
-     Branch
-      .find(query, returnFields)
-      .populate(population)
-      .stream());
-  });
-
-
+  return Branch.find(query, returnFields)
+    .populate(population)
+    .exec();
 };
 
 /**
