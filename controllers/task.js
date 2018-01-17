@@ -89,7 +89,7 @@ exports.updateStatus = function* updateTask(next) {
   } else if(task.entity_type === 'loan') {
       this.checkBody('status')
           .notEmpty('Status should not be empty')
-          .isIn(['accepted', 'declined_final', 'declined_under_review'], 'Required status types for screening task is accepted, declined_final or declined_under_review');
+          .isIn(['accepted', 'rejected', 'declined_under_review'], 'Required status types for screening task is accepted, rejected or declined_under_review');
   } else {
     this.checkBody('status')
           .notEmpty('Status should not be empty')
@@ -170,7 +170,7 @@ exports.updateStatus = function* updateTask(next) {
           yield NotificationDal.create({
             for: this.state._user._id,
             message: `Screening Application of ${client.first_name} ${client.last_name} has been declined For Further Review`,
-            task_ref: task._id
+            task_ref: _task._id
           });
         }
 
@@ -185,17 +185,17 @@ exports.updateStatus = function* updateTask(next) {
           yield NotificationDal.create({
             for: task.created_by,
             message: `Loan Application of ${client.first_name} ${client.last_name} has been accepted`,
-            task_ref: _task._id
+            task_ref: task._id
           });
           task = yield TaskDal.update(query, { status: 'completed', comment: body.comment });
 
 
-        } else if(body.status === 'declined_final') {
+        } else if(body.status === 'rejected') {
           loan      = yield LoanDal.update({ _id: loan._id }, { status: body.status });
-          client    = yield ClientDal.update({ _id: client._id }, { status: 'loan_application_declined' });
+          client    = yield ClientDal.update({ _id: client._id }, { status: 'loan_application_rejected' });
           yield NotificationDal.create({
             for: task.created_by,
-            message: `Loan Application  of ${client.first_name} ${client.last_name} has been declined in Final`,
+            message: `Loan Application  of ${client.first_name} ${client.last_name} has been rejected in Final`,
             task_ref: task._id
           });
           task = yield TaskDal.update(query, { status: 'completed', comment: body.comment });
