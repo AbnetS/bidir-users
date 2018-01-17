@@ -108,6 +108,40 @@ exports.update = function* updateAccount(next) {
       throw new Error('Account Does Not Exist');
     }
 
+    if(body.access_branches) {
+
+      let accessBranches = [];
+
+      for(let branch of body.access_branches) {
+        let brnch = yield BranchDal.get({ _id: branch });
+        let present = false;
+
+        // skip non existing branches and inactive branches
+        if(!brnch || brnch.status == 'inactive') continue;
+
+        // add only non duplicates
+        for(let _branch of account.access_branches) {
+          if(_branch._id.toString() == branch) {
+            present = true;
+          }
+        }
+
+        if(!present) {
+          accessBranches.push(branch);
+        }
+      }
+
+      body.access_branches = accessBranches;
+
+    } else if(body.default_branch) {
+      let brnch = yield BranchDal.get({ _id: body.default_branch });
+
+      // skip non existing branches and inactive branches
+      if(!brnch || brnch.status == 'inactive' || (account.default_branch._id.toString() == brnch._id)) {
+        delete body.default_branch;
+      }
+    }
+
     account = yield AccountDal.update(query, body);
 
     account = account.toJSON();
