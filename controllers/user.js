@@ -486,12 +486,19 @@ exports.fetchAllByPagination = function* fetchAllUsers(next) {
    if(account) {
       if(account.multi_branches) {
         query = {};
+
       } else {
         if(account.access_branches.length) {
-          query.access_branches = { $in: account.access_branches };
+          query.$or = [{
+            access_branches : { $in: account.access_branches },
+            default_branch : { $in: account.access_branches }
+          }]
 
         } else if(account.default_branch) {
-          query.default_branch = account.default_branch;
+          query.$or = [{
+            access_branches : body.default_branch,
+            default_branch : body.default_branch
+          }]
 
         }
       }
