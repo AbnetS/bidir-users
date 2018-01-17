@@ -153,8 +153,8 @@ exports.updateStatus = function* updateTask(next) {
           task = yield TaskDal.update(query, { status: 'completed', comment: body.comment });
 
         } else if(body.status === 'declined_under_review') {
-          screening = yield ScreeningDal.update({ _id: screening._id }, { status: 'inprogress' });
-          client    = yield ClientDal.update({ _id: client._id }, { status: 'ineligible' });
+          screening = yield ScreeningDal.update({ _id: screening._id }, { status: body.status });
+          client    = yield ClientDal.update({ _id: client._id }, { status: 'screening_inprogress' });
           task = yield TaskDal.update(query, { status: 'completed', comment: body.comment });
           // Create Review Task
           let _task = yield TaskDal.create({
