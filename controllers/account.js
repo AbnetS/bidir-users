@@ -121,7 +121,7 @@ exports.update = function* updateAccount(next) {
 
         // add only non duplicates
         for(let _branch of account.access_branches) {
-          if(_branch._id.toString() == branch) {
+          if(_branch.toString() == branch) {
             present = true;
           }
         }
