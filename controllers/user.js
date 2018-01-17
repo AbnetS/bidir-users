@@ -484,7 +484,9 @@ exports.fetchAllByPagination = function* fetchAllUsers(next) {
     let account = yield Account.findOne({ user: user._id }).exec();
     
    if(account) {
-      if(!account.multi_branches) {
+      if(account.multi_branches) {
+        query = {};
+      } else {
         if(account.access_branches.length) {
           query.access_branches = { $in: account.access_branches };
 
