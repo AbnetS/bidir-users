@@ -122,15 +122,8 @@ exports.update = function* updateAccount(next) {
         }
       }
 
-      let originalList = [];
-
-      for(let branch of account.access_branches) {
-        originalList.push(branch.toString())
-      }
-
-      console.log(accessBranches, originalList)
-
-      body.access_branches = _.uniq(_.concat(accessBranches, originalList))
+      //body.access_branches = _.uniq(_.concat(accessBranches, originalList))
+      body.access_branches = accessBranches;
 
     } else if(body.default_branch) {
       let brnch = yield BranchDal.get({ _id: body.default_branch });
