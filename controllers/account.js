@@ -112,6 +112,8 @@ exports.update = function* updateAccount(next) {
 
     if(body.access_branches) {
 
+      body.access_branches = _.uniq(body.access_branches);
+
       let accessBranches = [];
 
       for(let branch of body.access_branches) {
