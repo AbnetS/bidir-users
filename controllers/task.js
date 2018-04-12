@@ -201,6 +201,7 @@ exports.updateStatus = function* updateTask(next) {
           task = yield TaskDal.update(query, { status: 'completed', comment: body.comment });
 
         } else if(body.status === 'declined_under_review') {
+          console.log(body)
           loan      = yield LoanDal.update({ _id: loan._id }, { status: body.status, comment: body.comment  });
           client    = yield ClientDal.update({ _id: client._id }, { status: 'loan_application_inprogress' });
           task = yield TaskDal.update(query, { status: 'completed', comment: body.comment });
