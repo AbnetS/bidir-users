@@ -123,6 +123,7 @@ exports.updateStatus = function* updateTask(next) {
   }
 
   try {
+    
 
     let client;
 
