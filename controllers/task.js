@@ -443,7 +443,7 @@ function processACATTasks(task, body){
     
     if(body.status === 'authorized') {
       clientACAT  = yield ClientACATDal.update({ _id: clientACAT._id }, { status: body.status, comment: body.comment  });
-      client      = yield ClientDal.update({ _id: client._id }, { status: 'ACAT_authorized' });
+      client      = yield ClientDal.update({ _id: client._id }, { status: 'ACAT_Authorized' });
       task        = yield TaskDal.update(query, { status: 'completed', comment: body.comment });
       yield NotificationDal.create({
         for: task.created_by,
@@ -453,7 +453,7 @@ function processACATTasks(task, body){
 
     } else if(body.status === 'resubmitted') {
       clientACAT  = yield ClientACATDal.update({ _id: clientACAT._id }, { status: body.status, comment: body.comment  });
-      client      = yield ClientDal.update({ _id: client._id }, { status: 'ACAT_resubmitted' });
+      client      = yield ClientDal.update({ _id: client._id }, { status: 'ACAT_Resubmitted' });
       task        = yield TaskDal.update(query, { status: 'completed', comment: body.comment });
       // Create Review Task
       let _task = yield TaskDal.create({
@@ -474,7 +474,7 @@ function processACATTasks(task, body){
 
     } else if(body.status === 'declined_for_review') {
       clientACAT  = yield ClientACATDal.update({ _id: clientACAT._id }, { status: body.status, comment: body.comment  });
-      client      = yield ClientDal.update({ _id: client._id }, { status: 'ACAT_declined_for_review' });
+      client      = yield ClientDal.update({ _id: client._id }, { status: 'ACAT_Declined_For_Review' });
       task        = yield TaskDal.update(query, { status: 'completed', comment: body.comment });
       // Create Review Task
       let _task = yield TaskDal.create({
