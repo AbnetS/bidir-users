@@ -139,14 +139,14 @@ exports.updateStatus = function* updateTask(next) {
 
     switch(task.entity_type) {
       case 'screening':
-        task = yield processScreeningTasks(task, body);
+        task = yield processScreeningTasks(task, body, query, this);
         break;
       case 'loan':
-        task = yield processLoanTasks(task, body);
+        task = yield processLoanTasks(task, body, query, this);
         break;
 
       case 'clientACAT':
-        task = yield processACATTasks(task, body);
+        task = yield processACATTasks(task, body, query, this);
         break;
 
       default:
@@ -333,7 +333,7 @@ exports.remove = function* removeTask(next) {
 };
 
 // Utilities
-function processScreeningTasks(task, body) {
+function processScreeningTasks(task, body,query,ctx) {
   return co(function* () {
     let screening = yield ScreeningDal.get({ _id: task.entity_ref });
     let client    = yield ClientDal.get({ _id: screening.client });
@@ -369,13 +369,13 @@ function processScreeningTasks(task, body) {
         task_type: 'review',
         entity_ref: screening._id,
         entity_type: 'screening',
-        created_by: this.state._user._id,
+        created_by: ctx.state._user._id,
         user: task.created_by,
         comment: body.comment,
         branch: screening.branch
       })
       yield NotificationDal.create({
-        for: this.state._user._id,
+        for: ctx.state._user._id,
         message: `Screening Application of ${client.first_name} ${client.last_name} has been declined For Further Review`,
         task_ref: _task._id
       });
@@ -385,7 +385,7 @@ function processScreeningTasks(task, body) {
   });
 }
 
-function processLoanTasks(task, body){
+function processLoanTasks(task, body, query, ctx){
   return co(function* () {
     let loan      = yield LoanDal.get({ _id: task.entity_ref });
     let client    = yield ClientDal.get({ _id: loan.client });
@@ -421,13 +421,13 @@ function processLoanTasks(task, body){
         task_type: 'review',
         entity_ref: loan._id,
         entity_type: 'loan',
-        created_by: this.state._user._id,
+        created_by: ctx.state._user._id,
         user: task.created_by,
         comment: body.comment,
         branch: loan.branch
       })
       yield NotificationDal.create({
-        for: this.state._user._id,
+        for: ctx.state._user._id,
         message: `Loan Application of ${client.first_name} ${client.last_name} has been declined For Further Review`,
         task_ref: _task._id
       });
@@ -436,7 +436,7 @@ function processLoanTasks(task, body){
   });
 }
 
-function processACATTasks(task, body){
+function processACATTasks(task, body, query, ctx){
   return co(function* () {
     let clientACAT      = yield ClientACATDal.get({ _id: task.entity_ref });
     let client    = yield ClientDal.get({ _id: clientACAT.client._id });
@@ -461,7 +461,7 @@ function processACATTasks(task, body){
         task_type: 'review',
         entity_ref: clientACAT._id,
         entity_type: 'clientACAT',
-        created_by: this.state._user._id,
+        created_by: ctx.state._user._id,
         user: clientACAT.created_by._id,
         comment: body.comment,
         branch: client.branch._id
@@ -482,7 +482,7 @@ function processACATTasks(task, body){
         task_type: 'review',
         entity_ref: clientACAT._id,
         entity_type: 'clientACAT',
-        created_by: this.state._user._id,
+        created_by: ctx.state._user._id,
         user: clientACAT.created_by._id,
         comment: body.comment,
         branch: client.branch._id
