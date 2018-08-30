@@ -266,36 +266,18 @@ exports.fetchAllByPagination = function* fetchAllTasks(next) {
     let account = yield Account.findOne({ user: user._id }).exec();
 
     if(account) {
-      if(canViewLoan && canViewScreening && canViewClientACAT) {
+      let views = [];
+
+      canViewLoan       ? views.push('loan')        : null;
+      canViewScreening  ? views.push('screening')   : null;
+      canViewClientACAT ? views.push('clientACAT')  : null;
+      canViewACAT       ? views.push('ACAT')        : null;
+
+      if(views.length) {
         query = {
           user: { $in: [null, this.state._user._id ] },
-          entity_type: { $in: ['screening', 'loan', 'clientACAT', 'ACAT'] }
+          entity_type: { $in: views.slice() }
         };
-
-      } else if(canViewScreening) {
-        query = {
-          user: { $in: [null, this.state._user._id ] },
-          entity_type: 'screening'
-        };
-
-      } else if(canViewClientACAT) {
-        query = {
-          user: { $in: [null, this.state._user._id ] },
-          entity_type: 'clientACAT'
-        };
-
-       } else if(canViewACAT) {
-        query = {
-          user: { $in: [null, this.state._user._id ] },
-          entity_type: 'ACAT'
-        };
-
-      } else if(canViewLoan) {
-        query = {
-          user: { $in: [null, this.state._user._id ] },
-          entity_type: 'loan'
-        };
-
       } else {
         query = {
           user: this.state._user._id
