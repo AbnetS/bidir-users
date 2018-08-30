@@ -276,7 +276,7 @@ exports.fetchAllByPagination = function* fetchAllTasks(next) {
       if(views.length) {
         query = {
           user: { $in: [null, this.state._user._id ] },
-          entity_type: { $in: views.slice() }
+          entity_type: { $in: views }
         };
       } else {
         query = {
@@ -294,6 +294,10 @@ exports.fetchAllByPagination = function* fetchAllTasks(next) {
     }
 
     let tasks = yield TaskDal.getCollectionByPagination(query, opts);
+
+    tasks.query = query;
+    tasks.opts = opts;
+    tasks.account = account;
 
     this.body = tasks;
 
