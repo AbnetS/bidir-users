@@ -29,6 +29,7 @@ const NotificationDal    = require('../dal/notification');
 const ClientDal          = require('../dal/client');
 const LoanDal            = require('../dal/loan');
 const ClientACATDal      = require('../dal/clientACAT');
+const ACATDal            = require('../dal/ACAT');
 
 /**
  * Get a single task.
@@ -97,6 +98,11 @@ exports.updateStatus = function* updateTask(next) {
           .notEmpty('Status should not be empty')
           .isIn(['resubmitted','submitted', 'loan_granted', 'declined_for_review', 'authorized'], "Correct Status is either resubmitted, submitted, loan_granted, declined_for_review or authorized");
 
+  } else if(task.entity_type === 'ACAT') {
+      this.checkBody('status')
+          .notEmpty('Status should not be empty')
+          .isIn(['inprogress', 'submitted', 'resubmitted', 'authorized', 'declined_for_review'], 'Correct Status is either inprogress, resubmitted, authorized, submitted or declined_for_review');
+
   } else {
     this.checkBody('status')
           .notEmpty('Status should not be empty')
@@ -121,6 +127,10 @@ exports.updateStatus = function* updateTask(next) {
       isPermitted = yield hasPermission(this.state._user, 'AUTHORIZE');
 
     } else if(task.entity_type == 'clientACAT') {
+      let hasPermission = checkPermissions.isPermitted('Client_ACAT');
+      isPermitted = yield hasPermission(this.state._user, 'AUTHORIZE');
+
+    } else if(task.entity_type == 'ACAT') {
       let hasPermission = checkPermissions.isPermitted('ACAT');
       isPermitted = yield hasPermission(this.state._user, 'AUTHORIZE');
 
@@ -146,6 +156,10 @@ exports.updateStatus = function* updateTask(next) {
         break;
 
       case 'clientACAT':
+        task = yield processClientACATTasks(task, body, query, this);
+        break;
+
+      case 'ACAT':
         task = yield processACATTasks(task, body, query, this);
         break;
 
@@ -238,9 +252,13 @@ exports.fetchAllByPagination = function* fetchAllTasks(next) {
 
   let screeningPermission =  checkPermissions.isPermitted('SCREENING');
   let loanPermission =  checkPermissions.isPermitted('LOAN');
+  let clientACATPermission =  checkPermissions.isPermitted('Client_ACAT');
+  let ACATPermission =  checkPermissions.isPermitted('ACAT');
 
   let canViewScreening =  yield screeningPermission(this.state._user, 'AUTHORIZE');
-  let canViewLoan = yield loanPermission(this.state._user, 'AUTHORIZE')
+  let canViewLoan = yield loanPermission(this.state._user, 'AUTHORIZE');
+  let canViewClientACAT =  yield clientACATPermission(this.state._user, 'AUTHORIZE');
+  let canViewACAT = yield ACATPermission(this.state._user, 'AUTHORIZE')
 
 
   try {
@@ -248,10 +266,10 @@ exports.fetchAllByPagination = function* fetchAllTasks(next) {
     let account = yield Account.findOne({ user: user._id }).exec();
 
     if(account) {
-      if(canViewLoan && canViewScreening) {
+      if(canViewLoan && canViewScreening && canViewClientACAT) {
         query = {
           user: { $in: [null, this.state._user._id ] },
-          entity_type: { $in: ['screening', 'loan'] }
+          entity_type: { $in: ['screening', 'loan', 'clientACAT', 'ACAT'] }
         };
 
       } else if(canViewScreening) {
@@ -259,6 +277,19 @@ exports.fetchAllByPagination = function* fetchAllTasks(next) {
           user: { $in: [null, this.state._user._id ] },
           entity_type: 'screening'
         };
+
+      } else if(canViewClientACAT) {
+        query = {
+          user: { $in: [null, this.state._user._id ] },
+          entity_type: 'clientACAT'
+        };
+
+       } else if(canViewACAT) {
+        query = {
+          user: { $in: [null, this.state._user._id ] },
+          entity_type: 'ACAT'
+        };
+
       } else if(canViewLoan) {
         query = {
           user: { $in: [null, this.state._user._id ] },
@@ -436,7 +467,7 @@ function processLoanTasks(task, body, query, ctx){
   });
 }
 
-function processACATTasks(task, body, query, ctx){
+function processClientACATTasks(task, body, query, ctx){
   return co(function* () {
     let clientACAT      = yield ClientACATDal.get({ _id: task.entity_ref });
     let client    = yield ClientDal.get({ _id: clientACAT.client._id });
@@ -490,6 +521,67 @@ function processACATTasks(task, body, query, ctx){
       yield NotificationDal.create({
         for: task.created_by,
         message: `Client ACAT Application of ${client.first_name} ${client.last_name} has been declined For Further Review`,
+        task_ref: _task._id
+      });
+
+    }
+  });
+}
+
+function processACATTasks(task, body, query, ctx){
+  return co(function* () {
+    let ACAT      = yield ACATDal.get({ _id: task.entity_ref });
+    let client    = yield ClientDal.get({ _id: ACAT.client });
+    
+    if(body.status === 'authorized') {
+      ACAT  = yield ACATDal.update({ _id: ACAT._id }, { status: body.status, comment: body.comment  });
+      client      = yield ClientDal.update({ _id: client._id }, { status: 'ACAT_Authorized' });
+      task        = yield TaskDal.update(query, { status: 'completed', comment: body.comment });
+      yield NotificationDal.create({
+        for: task.created_by,
+        message: `Client Crop ACAT Application of ${client.first_name} ${client.last_name} has been Authorized`,
+        task_ref: _task._id
+      });
+
+    } else if(body.status === 'resubmitted') {
+      ACAT  = yield ClientACATDal.update({ _id: ACAT._id }, { status: body.status, comment: body.comment  });
+      client      = yield ClientDal.update({ _id: client._id }, { status: 'ACAT_Resubmitted' });
+      task        = yield TaskDal.update(query, { status: 'completed', comment: body.comment });
+      // Create Review Task
+      let _task = yield TaskDal.create({
+        task: `Review Client Crop ACAT Application of ${client.first_name} ${client.last_name}`,
+        task_type: 'review',
+        entity_ref: ACAT._id,
+        entity_type: 'ACAT',
+        created_by: ctx.state._user._id,
+        user: ACAT.created_by._id,
+        comment: body.comment,
+        branch: client.branch._id
+      });
+      yield NotificationDal.create({
+        for: task.created_by,
+        message: `Client ACAT Application of ${client.first_name} ${client.last_name} has been Resubmitted`,
+        task_ref: _task._id
+      });
+
+    } else if(body.status === 'declined_for_review') {
+      ACAT  = yield ACATDal.update({ _id: clientACAT._id }, { status: body.status, comment: body.comment  });
+      client      = yield ClientDal.update({ _id: client._id }, { status: 'ACAT_Declined_For_Review' });
+      task        = yield TaskDal.update(query, { status: 'completed', comment: body.comment });
+      // Create Review Task
+      let _task = yield TaskDal.create({
+        task: `Review Client Crop ACAT Application of ${client.first_name} ${client.last_name}`,
+        task_type: 'review',
+        entity_ref: ACAT._id,
+        entity_type: 'ACAT',
+        created_by: ctx.state._user._id,
+        user: ACAT.created_by._id,
+        comment: body.comment,
+        branch: client.branch._id
+      });
+      yield NotificationDal.create({
+        for: task.created_by,
+        message: `Client Crop ACAT Application of ${client.first_name} ${client.last_name} has been declined For Further Review`,
         task_ref: _task._id
       });
 
