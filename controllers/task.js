@@ -252,7 +252,7 @@ exports.fetchAllByPagination = function* fetchAllTasks(next) {
 
   let screeningPermission =  checkPermissions.isPermitted('SCREENING');
   let loanPermission =  checkPermissions.isPermitted('LOAN');
-  let clientACATPermission =  checkPermissions.isPermitted('Client_ACAT');
+  let clientACATPermission =  checkPermissions.isPermitted('CLIENT_ACAT');
   let ACATPermission =  checkPermissions.isPermitted('ACAT');
 
   let canViewScreening =  yield screeningPermission(this.state._user, 'AUTHORIZE');
@@ -270,7 +270,7 @@ exports.fetchAllByPagination = function* fetchAllTasks(next) {
 
       canViewLoan       ? views.push('loan')        : null;
       canViewScreening  ? views.push('screening')   : null;
-      canViewClientACAT ? views.push('Client_ACAT')  : null;
+      canViewClientACAT ? views.push('clientACAT')  : null;
       canViewACAT       ? views.push('ACAT')        : null;
 
       if(views.length) {
@@ -294,10 +294,6 @@ exports.fetchAllByPagination = function* fetchAllTasks(next) {
     }
 
     let tasks = yield TaskDal.getCollectionByPagination(query, opts);
-
-    tasks.query = query;
-    tasks.opts = opts;
-    tasks.account = account;
 
     this.body = tasks;
 
