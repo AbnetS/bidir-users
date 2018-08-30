@@ -270,7 +270,7 @@ exports.fetchAllByPagination = function* fetchAllTasks(next) {
 
       canViewLoan       ? views.push('loan')        : null;
       canViewScreening  ? views.push('screening')   : null;
-      canViewClientACAT ? views.push('clientACAT')  : null;
+      canViewClientACAT ? views.push('Client_ACAT')  : null;
       canViewACAT       ? views.push('ACAT')        : null;
 
       if(views.length) {
