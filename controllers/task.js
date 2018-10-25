@@ -91,7 +91,7 @@ exports.updateStatus = function* updateTask(next) {
   } else if(task.entity_type === 'loan') {
       this.checkBody('status')
           .notEmpty('Status should not be empty')
-          .isIn(['accepted', 'rejected', 'declined_under_review'], 'Required status types for screening task is accepted, rejected or declined_under_review');
+          .isIn(['accepted', 'rejected', 'declined_under_review', 'loan_paid'], 'Required status types for screening task is accepted, rejected, loan_paid or declined_under_review');
 
   } else if(task.entity_type === 'clientACAT') {
       this.checkBody('status')
@@ -412,7 +412,15 @@ function processLoanTasks(task, body, query, ctx){
         task_ref: task._id
       });
       task = yield TaskDal.update(query, { status: 'completed', comment: body.comment });
-
+    } else  if(body.status === 'loan_paid') {
+      loan      = yield LoanDal.update({ _id: loan._id }, { status: body.status, comment: body.comment  });
+      client    = yield ClientDal.update({ _id: client._id }, { status: 'loan_paid' });
+      yield NotificationDal.create({
+        for: task.created_by,
+        message: `Loan of ${client.first_name} ${client.last_name} has been Paid`,
+        task_ref: task._id
+      });
+      task = yield TaskDal.update(query, { status: 'completed', comment: body.comment });    
 
     } else if(body.status === 'rejected') {
       loan      = yield LoanDal.update({ _id: loan._id }, { status: body.status, comment: body.comment  });
