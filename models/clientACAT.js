@@ -16,8 +16,10 @@ var ClientACATSchema = new Schema({
     branch:         { type: Schema.Types.ObjectId, ref: 'Branch' },
     created_by:     { type: Schema.Types.ObjectId, ref: 'User' },
     loan_product:   { type: Schema.Types.ObjectId, ref: 'LoanProduct', default: null },
+    for_group:           { type: Boolean, default: false },
     ACATs:          [{ type: Schema.Types.ObjectId, ref: 'ACAT'}],
     status:         { type: String, default: 'new'},
+    filling_status: { type: String, default: 'new' },
     estimated:      {
       total_cost:     { type: Number, default: 0 },
       total_revenue:  { type: Number, default: 0 },
@@ -56,6 +58,7 @@ var ClientACATSchema = new Schema({
         dec:             { type: Number, default: 0 }
       }
     },
+    comment:        { type: String, default: '' },
     date_created:   { type: Date },
     last_modified:  { type: Date }
 });
@@ -88,6 +91,8 @@ ClientACATSchema.pre('save', function preSaveMiddleware(next) {
  */
 ClientACATSchema.statics.attributes = {
   client: 1,
+  comment: 1,
+  filling_status: 1,
   branch: 1,
   created_by: 1,
   loan_product: 1,
@@ -96,6 +101,7 @@ ClientACATSchema.statics.attributes = {
   achieved: 1,
   date_created: 1,
   status: 1,
+  for_group: 1,
   last_modified: 1,
   _id: 1
 };
