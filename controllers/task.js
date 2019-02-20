@@ -30,6 +30,8 @@ const ClientDal          = require('../dal/client');
 const LoanDal            = require('../dal/loan');
 const ClientACATDal      = require('../dal/clientACAT');
 const ACATDal            = require('../dal/ACAT');
+const GroupDal            = require('../dal/group');
+const GroupScreeningDal   = require('../dal/groupScreening');
 
 /**
  * Get a single task.
@@ -103,6 +105,12 @@ exports.updateStatus = function* updateTask(next) {
           .notEmpty('Status should not be empty')
           .isIn(['inprogress', 'submitted', 'resubmitted', 'authorized', 'declined_for_review'], 'Correct Status is either inprogress, resubmitted, authorized, submitted or declined_for_review');
 
+  } else if(task.entity_type === 'group_screening') {
+      this.checkBody('status')
+          .notEmpty('Status should not be empty')
+          .isIn(['in_progress', 'submitted', 'approved','screening_declined',
+                'screening_declined_for_review'], 'Correct Status is either inprogress ,submitted, approved ,screening_declined or screening_declined_for_review');
+
   } else {
     this.checkBody('status')
           .notEmpty('Status should not be empty')
@@ -134,6 +142,10 @@ exports.updateStatus = function* updateTask(next) {
       let hasPermission = checkPermissions.isPermitted('ACAT');
       isPermitted = yield hasPermission(this.state._user, 'AUTHORIZE');
 
+    } else if(task.entity_type == 'group_screening') {
+      let hasPermission = checkPermissions.isPermitted('GROUP');
+      isPermitted = yield hasPermission(this.state._user, 'AUTHORIZE');
+
     } 
 
     if(!isPermitted) {
@@ -161,6 +173,10 @@ exports.updateStatus = function* updateTask(next) {
 
       case 'ACAT':
         task = yield processACATTasks(task, body, query, this);
+        break;
+
+      case 'group_screening':
+        task = yield processGroupScreeningTasks(task, body, query, this);
         break;
 
       default:
@@ -572,6 +588,44 @@ function processACATTasks(task, body, query, ctx){
       yield NotificationDal.create({
         for: task.created_by,
         message: `Client Crop ACAT Application of ${client.first_name} ${client.last_name} has been declined For Further Review`,
+        task_ref: _task._id
+      });
+
+    }
+  });
+}
+
+function processGroupScreeningTasks(task, body, query, ctx){
+  return co(function* () {
+    let groupScreening   = yield GroupScreeningDal.get({ _id: task.entity_ref });
+    
+    if(body.status === 'approved') {
+      groupScreening  = yield GroupScreeningDal.update({ _id: groupScreening._id }, { status: body.status, comment: body.comment  });
+      yield GroupDal.update({ _id: groupScreening.group._id },{
+        status: "eligible"
+      });
+      task = yield TaskDal.update(query, { status: 'completed', comment: body.comment });
+
+    } else if(body.status === 'screening_declined_for_review') {
+      groupScreening  = yield GroupScreeningDal.update({ _id: groupScreening._id }, { status: body.status, comment: body.comment  });
+      yield GroupDal.update({ _id: groupScreening.group._id },{
+        status: "screening_in_progress"
+      });
+      task = yield TaskDal.update(query, { status: 'completed', comment: body.comment });
+      // Create Review Task
+      let _task = yield TaskDal.create({
+        task: `${groupScreening.group.name} Group Screenings Application Review`,
+        task_type: 'review',
+        entity_ref: groupScreening._id,
+        entity_type: 'group_screening',
+        created_by: ctx.state._user._id,
+        user: groupScreening.group.created_by,
+        comment: body.comment,
+        branch: client.branch._id
+      });
+      yield NotificationDal.create({
+        for: task.created_by,
+        message: `${groupScreening.group.name} Group Screenings Application Needs Review`,
         task_ref: _task._id
       });
 
