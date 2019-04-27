@@ -307,6 +307,12 @@ exports.fetchAllByPagination = function* fetchAllTasks(next) {
           query.branch = account.default_branch;
 
       }
+
+      query.status = "pending"
+    } else {
+      query = {
+        status: "pending"
+      }
     }
 
     let tasks = yield TaskDal.getCollectionByPagination(query, opts);
