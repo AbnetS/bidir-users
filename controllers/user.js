@@ -441,6 +441,67 @@ exports.updatePassword = function* updateUserPassword(next) {
 
 };
 
+exports.resetPassword = function* resetUserPassword(ctx, next) {
+  debug(`reseting password for user: ${this.params.id}` );
+
+  let query = {
+    _id: this.params.id
+  };
+
+  if(this.errors) {
+    return this.throw(new CustomError({
+      type: 'RESET_PASSWORD_ERROR',
+      message: JSON.stringify(this.errors)
+    }));
+  }
+
+  try {
+    let logged_user =this.state._user._id;
+
+    let account = yield Account.findOne({ user: logged_user._id }).exec();
+
+    // Super Admin
+    if (!account) {
+      let user = yield User.findOne(query).exec();
+      if(!user || !user._id) {
+        throw new Error('User Does Not Exist!!')
+      }     
+      
+      let hash    = yield UserDal.hashPasswd("cecmpass2");
+      let update  = { password: hash };
+      query = { _id: user._id };
+
+      yield UserDal.update(query, update);
+      yield TokenDal.update({ user: user._id },{
+        revoked: true,
+        value: crypto.randomBytes(7).toString('base64')
+      })
+
+      yield LogDal.track({
+        event: 'user_password_reset',
+        user: this.state._user._id ,
+        message: `Password Reset for ${user.email}`
+      });
+
+      this.body = { message : "Password reset operation Successful" };
+        
+    }
+    else {
+      this.body = {message: "You are not allowed to do this operation"}
+
+    }
+    
+
+  } catch(ex) {
+    return this.throw(new CustomError({
+      type: 'RESET_PASSWORD_ERROR',
+      message: ex.message
+    }));
+
+  }
+
+};
+
 
 
 /**

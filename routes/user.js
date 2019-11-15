@@ -196,6 +196,8 @@ router.get('/search', acl(['*']), userController.search);
  */
 router.put('/:id/passwords', acl(['*']), userController.updatePassword);
 
+router.put('/:id/reset', acl(['*']), userController.resetPassword);
+
 
 /**
  * @api {get} /users/:id Get User User
