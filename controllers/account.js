@@ -166,6 +166,93 @@ exports.update = function* updateAccount(next) {
 
 };
 
+exports.updateProfile = function* updateProfile(next) {
+  debug(`updating account: ${this.params.id}`);
+
+  let query = {
+    _id: this.params.id
+  };
+
+  let account = yield Account.findOne(query).exec();
+  if(!account || !account._id) {
+    throw new Error('Account Does Not Exist!!')
+  }
+
+
+  if (account.user.toString() != this.state._user._id.toString())
+  {
+    return this.throw(new CustomError({
+      type: 'ACCOUNT_UPDATE_ERROR',
+      message: "You Don't have enough permissions to complete this action"
+    }));
+  }
+
+  
+  let body = this.request.body;
+
+  try {
+    
+
+    account = account.toJSON();
+
+    if(body.access_branches) {
+
+      body.access_branches = _.uniq(body.access_branches);
+
+      let accessBranches = [];
+
+      for(let branch of body.access_branches) {
+        let brnch = yield BranchDal.get({ _id: branch });
+        // add only existing and active branches
+        if(brnch && brnch.status == 'active') {
+          accessBranches.push(branch.toString());
+        }
+      }
+
+      //body.access_branches = _.uniq(_.concat(accessBranches, originalList))
+      body.access_branches = accessBranches;
+
+    } else if(body.default_branch) {
+      let brnch = yield BranchDal.get({ _id: body.default_branch });
+
+      // skip non existing branches and inactive branches
+      if(!brnch || brnch.status == 'inactive' || (account.default_branch._id.toString() == brnch._id)) {
+        delete body.default_branch;
+      }
+    }
+
+    account = yield AccountDal.update(query, body);
+
+    account = account.toJSON();
+
+    if(account.multi_branches) {
+      let branches  = yield BranchDal.getCollection({});
+
+      account.access_branches = branches.slice();
+
+    }
+
+    yield LogDal.track({
+      event: 'account_update',
+      account: this.state._user._id ,
+      message: `Update Info for ${account.email}`,
+      diff: body
+    });
+
+    this.body = account;
+
+  } catch(ex) {
+    return this.throw(new CustomError({
+      type: 'UPDATE_ACCOUNT_ERROR',
+      message: ex.message
+    }));
+
+  }
+
+};
+
+
+
 /**
  * Update Account photo
  *

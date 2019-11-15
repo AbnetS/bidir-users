@@ -290,6 +290,9 @@ router.get('/:id', acl(['*']), accountController.fetchOne);
  */
 router.put('/:id', acl(['*']), accountController.update);
 
+router.put('/:id/profile', acl(['*']), accountController.updateProfile);
+
+
 /**
  * @api {put} /users/accounts/:id/pictures Update Account Picture
  * @apiVersion 1.0.0
