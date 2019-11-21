@@ -308,11 +308,11 @@ exports.fetchAllByPagination = function* fetchAllTasks(next) {
 
       }
 
-      //query.status = "pending"
+      query.status = "pending"
     } else {
-      // query = {
-      //   status: "pending"
-      // }
+      query = {
+        status: "pending"
+      }
     }
 
     let tasks = yield TaskDal.getCollectionByPagination(query, opts);
