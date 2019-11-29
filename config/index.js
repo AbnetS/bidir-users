@@ -14,6 +14,8 @@ const HOST        = env.HOST_IP || 'localhost';
 
 const MONGODB_URL = env.MONGODB_URL || 'mongodb://127.0.0.1:27017/bidir';
 
+const DEFAULT_USER_PWD = "pass2acat"
+
 let config = {
 
   // Root Configs
@@ -57,7 +59,9 @@ let config = {
   GOOGLE_BUCKETS: {
     ACCESS_ID: 'bidir-bucket-access@los-bidir.iam.gserviceaccount.com',
     KEY: path.join(__dirname, '../config/google-buckets.pem')
-  }
+  },
+
+  DEFAULT_USER_PWD: DEFAULT_USER_PWD
 };
 
 module.exports = config;

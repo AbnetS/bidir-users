@@ -467,7 +467,7 @@ exports.resetPassword = function* resetUserPassword(ctx, next) {
         throw new Error('User Does Not Exist!!')
       }     
       
-      let hash    = yield UserDal.hashPasswd("cecmpass2");
+      let hash    = yield UserDal.hashPasswd(config.DEFAULT_USER_PWD);
       let update  = { password: hash };
       query = { _id: user._id };
 
