@@ -13,6 +13,7 @@ const _          = require('lodash');
 const co         = require('co');
 const del        = require('del');
 const validator  = require('validator');
+const fs         = require('fs-extra');
 
 const config             = require('../config');
 const CustomError        = require('../lib/custom-error');
@@ -187,13 +188,47 @@ exports.updateProfile = function* updateProfile(next) {
     }));
   }
 
-  
   let body = this.request.body;
+  let bodyKeys = Object.keys(body);
+  let isMultipart = (bodyKeys.indexOf('fields') !== -1) && (bodyKeys.indexOf('files') !== -1);
 
-  try {
-    
+  // If content is multipart reduce fields and files path
+  if(isMultipart) {
+    let _clone = {};
+
+    for(let key of bodyKeys) {
+      let props = body[key];
+      let propsKeys = Object.keys(props);
+
+      for(let prop of propsKeys) {
+        _clone[prop] = props[prop];
+      }
+    }
+
+    body = _clone;
+
+  }
+
+  
+  try {   
 
     account = account.toJSON();
+
+    if(body.picture) {
+      let filename  = account.first_name.trim().toUpperCase().split(/\s+/).join('_');
+      let id        = crypto.randomBytes(6).toString('hex');
+      let extname   = path.extname(body.picture.name);
+      let assetName = `${filename}_${id}${extname}`;
+
+      yield fs.move(body.picture.path, `./assets/${assetName}`)
+      yield fs.remove(body.picture.path);
+
+      body.picture =  `${config.ASSETS.DEV}${assetName}`
+
+      //let url       = yield googleBuckets(body.picture.path, assetName);
+
+      //body.picture = url;
+    }
 
     if(body.access_branches) {
 
@@ -306,16 +341,25 @@ exports.updatePhoto = function* updateAccountPhoto(next) {
   }
 
   try {
+    let account = yield AccountDal.get(query);
+    if(!account || !account._id) {
+      throw new Error('Account does not exist!');
+    }
     
     if(body.picture) {
-      let filename  = body.first_name.trim().toUpperCase().split(/\s+/).join('_');
+      let filename  = account.first_name.trim().toUpperCase().split(/\s+/).join('_');
       let id        = crypto.randomBytes(6).toString('hex');
       let extname   = path.extname(body.picture.name);
       let assetName = `${filename}_${id}${extname}`;
 
-      let url       = yield googleBuckets(body.picture.path, assetName);
+      yield fs.move(body.picture.path, `./assets/${assetName}`)
+      yield fs.remove(body.picture.path);
 
-      body.picture = url;
+      body.picture =  `${config.ASSETS.DEV}${assetName}`
+
+      //let url       = yield googleBuckets(body.picture.path, assetName);
+
+      //body.picture = url;
     }
     let account = yield AccountDal.update(query, body);
 

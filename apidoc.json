@@ -1,9 +1,9 @@
 {
-  "name": "Users API",
+  "name": "Users API Service",
   "version": "1.0.0",
   "description": "HTTP API service",
   "title": "API documentation",
-  "doc-url": "docs.bidir.com/",
-  "url": "api.bidir.com"
+  "doc-url": "http://docs.test.bidir.gebeya.co/",
+  "url": "api.test.bidir.gebeya.co"
 }
 

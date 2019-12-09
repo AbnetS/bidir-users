@@ -196,6 +196,26 @@ router.get('/search', acl(['*']), userController.search);
  */
 router.put('/:id/passwords', acl(['*']), userController.updatePassword);
 
+
+/**
+ * @api {put} /users/:id/reset Resets User Password
+ * @apiVersion 1.0.0
+ * @apiName ResetPassword
+ * @apiGroup User 
+ *
+ * @apiDescription Resets a User's Password with the given id to a a default password (which is pass2acat)
+ *
+ * @apiParam {String} old_password Old Password
+ * @apiParam {String} new_password New Password
+ *
+ *
+ * @apiSuccess {String} message Message
+ *
+ * @apiSuccessExample Response Example:
+ {
+    "message": "Password reset operation Successful"
+ }
+ */
 router.put('/:id/reset', acl(['*']), userController.resetPassword);
 
 
