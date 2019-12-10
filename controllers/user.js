@@ -13,6 +13,7 @@ const _                  = require('lodash');
 const co                 = require('co');
 const del                = require('del');
 const validator          = require('validator');
+const fs                 = require ('extra-fs');
 
 const config             = require('../config');
 const CustomError        = require('../lib/custom-error');
@@ -111,9 +112,14 @@ exports.create = function* createUser(next) {
       let extname   = path.extname(body.picture.name);
       let assetName = `${filename}_${id}${extname}`;
 
-      let url       = yield googleBuckets(body.picture.path, assetName);
+      yield fs.move(body.picture.path, `./assets/${assetName}`)
+      yield fs.remove(body.picture.path);
 
-      body.picture = url;
+      body.picture =  `${config.ASSETS.DEV}${assetName}`
+
+      // let url       = yield googleBuckets(body.picture.path, assetName);
+
+      // body.picture = url;
     }
 
     let user = yield UserDal.get({ username: body.username });

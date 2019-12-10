@@ -12,65 +12,126 @@ const acl               = authController.accessControl;
 var router  = Router();
 
 /**
- * @api {post} /users/create Create new User User
+ * @api {post} /users/create Create new User
  * @apiVersion 1.0.0
  * @apiName CreateUser
  * @apiGroup User
  *
- * @apiDescription Create new User user
+ * @apiDescription Create a new user
  *
- * @apiParam {String} username Email Address
- * @apiParam {String} password Account Password
+ * @apiParam {String} username Unique username
+ * @apiParam {String} password Password, minimum length of password is 6
  * @apiParam {String} first_name First Name
  * @apiParam {String} last_name Last Name
- * @apiParam {String} [title] Title
- * @apiParam {String} email Email Address
- * @apiParam {String} user_role Role name ie loan_officer
+ * @apiParam {String} [grandfather_name] Grandfather name
  * @apiParam {String} default_branch Default Branch for User
- * @apiParam {String} role References to Role asigned to user
- * @apiParam {Object} picture Account Picture _SUBMIT IN MULTIPART/FORM-DATA__
+ * @apiParam {String} role Reference to Role asigned to the user
+ * @apiParam {Object} picture Profile Picture _SUBMIT IN MULTIPART/FORM-DATA__
+ * @apiParam {Bollean} [multi_branches] An attribute to indicate a user is allowed to access data of all branches 
+ * @apiParam {String[]} [access_branches] All branches accessible to the user 
+ * @apiParam {String} [title] Title 
+ * @apiParam {String} [gender] Gender
+ * @apiParam {String} [email] Email Address
+ * @apiParam {String} [phone] Phone number of the user
+ * @apiParam {String} [city] City
+ * @apiParam {String} [Country] Country
+ * @apiParam {Date} [hired_date] Date on which the employee is hired, if applicable
+ *
+ * 
  *
  * @apiParamExample Request Example:
  *  {
- *    first_name: "Mary",
- *    last_name: "Jane",
- *    email: "mary.jane@gmail.com",
- *    username: "mary.jane@gmail.com",
- *    password: "password",
- *    user_role: "loan_officer",
- *    role : "556e1174a8952c9521286a60",
- *    default_branch : "556e1174a8952c9521286a60"
+ *     first_name: "Adane"
+      last_name: "Kebede"
+      username: "adane@test"
+      password: "password"
+      access_branches: ["5b9283679fb7f20001f1494d", "5b926c849fb7f20001f1494c"]
+      default_branch: "5b9283679fb7f20001f1494d"    
+      role: "5b9259d7b1cfc10001d80928"
+      title: "Loan Officer"
+      
  *  }
  *
  * @apiSuccess {String} _id user id
- * @apiSuccess {Object} account Account Data
- * @apiSuccess {Boolean} is_active Activeness
+ * @apiSuccess {String} username Username
+ * @apiSuccess {Object} account Account detail Data
+ * @apiSuccess {Boolean} status active/suspended
  * @apiSuccess {String} role User Role
  * @apiSuccess {String} realm User Realm
  * @apiSuccess {String} last_login Last Login Time Stamp
+ * 
  *
  * @apiSuccessExample Response Example:
  *  {
- *    _id : "556e1174a8952c9521286a60"
- *    username: "mary.jane@gmail.com",
- *    last_login: '2017-03-16T10:50:52.305Z',
- *    role: "loan_officer",
- *    realm: "user",
- *    account: {
- *      _id : "556e1174a8952c9521286a60",
- *      user : "556e1174a8952c9521286a60",
- *    	first_name: "Mary",
- *    	last_name: "Jane",
- *    	email: "mary.jane@gmail.com",
- *    	phone: "095342345",
- *      picture: "https://mfi.com/assets/account_5736573.png",
- *      gender: "SELECT",
- *      multi_branch: false,
- *      default_branch: "556e1174a8952c9521286a60",
- *      access_branches: [],
- *      role: 556e1174a8952c9521286a60,
- *      ...
- *    }
+   "_id": "5def0f20a7c38e11f72d8b07",
+    "realm": "user",
+    "role": "Junior_Officer",
+    "status": "active",
+    "archived": false,    
+    "username": "hassen@test",
+    "created_by": "super@bidir.com",
+    "date_created": "2019-12-10T03:21:04.999Z",
+    "last_modified": "2019-12-10T03:21:05.018Z",
+    "last_login": "2019-12-10T03:21:04.999Z",
+    "account": {
+       "_id": "5def0f21a7c38e5a2d2d8b08"
+        "picture": "",
+        "title": "Loan Officer",
+        "gender": "SELECT",
+        "first_name": "Hassen",
+        "last_name": "Mohammed",
+        "email": "",
+        "phone": "",
+        "city": "SELECT",
+        "country": "SELECT",
+        "hired_date": null,
+        "grandfather_name": "",
+        "role": {
+            "permissions": [
+                {
+                    "description": "Create a given group",
+                    ...
+                },
+                {
+                   ...
+                }
+            ],
+            "_id": "5b9259d7b1cfc10001d80928",
+            "name": "Junior Officer"
+        },
+        "default_branch": {
+            "geolocation": {
+                "longitude": 38.984703,
+                "latitude": 7.530478
+            },
+            "opening_date": "1970-01-01T00:00:00.000Z",
+            "branch_type": "Satellite office",
+            "email": "test@buusaa.com",
+            "phone": "",
+            "status": "active",
+            "weredas": [],
+            "_id": "5b9283679fb7f20001f1494d",
+            "last_modified": "2019-12-07T09:13:41.119Z",
+            "date_created": "2018-09-07T13:55:51.227Z",
+            "name": "Test Branch",
+            "location": "test"
+        },
+        "access_branches": [
+            {
+               "_id": "5b9283679fb7f20001f1494d",
+               "name": "Test Branch",               
+                ...
+            {
+                ...
+            }
+        ],
+        "multi_branches": false,
+        "archived": false,        ,
+        "user": "5def0f20a7c38e11f72d8b07",
+        "date_created": "2019-12-10T03:21:05.006Z",
+        "last_modified": "2019-12-10T03:21:05.006Z"
+    }
+}
  *  }
  *
  */
@@ -88,38 +149,40 @@ router.post('/create', acl('*'), userController.create);
  * and `per_page=<RESULTS_PER_PAGE>`.
  *
  * @apiSuccess {String} _id user id
- * @apiSuccess {Object} account Account Data
+ * @apiSuccess {String} username Username
+ * @apiSuccess {Object} account Account detail Data
+ * @apiSuccess {Boolean} status active/suspended
  * @apiSuccess {String} role User Role
  * @apiSuccess {String} realm User Realm
  * @apiSuccess {String} last_login Last Login Time Stamp
  *
  * @apiSuccessExample Response Example:
  *  {
- *    "total_pages": 1,
- *    "total_docs_count": 0,
- *    "docs": [{
- *    _id : "556e1174a8952c9521286a60"
- *    username: "mary.jane@gmail.com",
- *    last_login: '2017-03-16T10:50:52.305Z',
- *    role: "loan_officer",
- *    realm: "user",
- *    account: {
- *      _id : "556e1174a8952c9521286a60",
- *      user : "556e1174a8952c9521286a60",
- *    	first_name: "Mary",
- *    	last_name: "Jane",
- *    	email: "mary.jane@gmail.com",
- *    	phone: "095342345",
- *      picture: "https://mfi.com/assets/account_5736573.png",
- *      gender: "SELECT",
- *      multi_branch: false,
- *      default_branch: "556e1174a8952c9521286a60",
- *      access_branches: [],
- *      roles: [556e1174a8952c9521286a60],
- *      ...
- *    }
- *    }]
- *  }
+ *    "total_pages": 2,
+      "total_docs_count": 14,
+      "current_page": 1,
+      "docs": [
+         {
+            "_id": "5def0f20a7c38e11f72d8b07",
+            "realm": "user",
+            "role": "Junior_Officer",
+            "status": "active",
+            "archived": false,    
+            "username": "hassen@test",
+            "created_by": "super@bidir.com",
+            "date_created": "2019-12-10T03:21:04.999Z",
+            "last_modified": "2019-12-10T03:21:05.018Z",
+            "last_login": "2019-12-10T03:21:04.999Z",
+            "account": {
+               "_id": "5def0f21a7c38e5a2d2d8b08"
+               ...
+            }
+         },
+         {
+            ...
+         }           
+      ]
+   }
  */
 router.get('/paginate', acl(['*']), userController.fetchAllByPagination);
 
@@ -132,40 +195,47 @@ router.get('/paginate', acl(['*']), userController.fetchAllByPagination);
  * @apiDescription Get a collection of users by search. The endpoint has pagination
  * out of the box. Use these params to query with pagination: `page=<RESULTS_PAGE`
  * and `per_page=<RESULTS_PER_PAGE>`.
+ * 
+ * @apiExample Usage Example
+ * api.dev.bidir.gebeya.co/users/search?search=hassen
  *
  * @apiSuccess {String} _id user id
- * @apiSuccess {Object} account Account Data
+ * @apiSuccess {String} username Username
+ * @apiSuccess {Object} account Account detail Data
+ * @apiSuccess {Boolean} status active/suspended
  * @apiSuccess {String} role User Role
  * @apiSuccess {String} realm User Realm
  * @apiSuccess {String} last_login Last Login Time Stamp
- *
+ * 
+ * 
  * @apiSuccessExample Response Example:
  *  {
+ *    {
  *    "total_pages": 1,
- *    "total_docs_count": 0,
- *    "docs": [{
- *    _id : "556e1174a8952c9521286a60"
- *    username: "mary.jane@gmail.com",
- *    last_login: '2017-03-16T10:50:52.305Z',
- *    role: "loan_officer",
- *    realm: "user",
- *    account: {
- *      _id : "556e1174a8952c9521286a60",
- *      user : "556e1174a8952c9521286a60",
- *      first_name: "Mary",
- *      last_name: "Jane",
- *      email: "mary.jane@gmail.com",
- *      phone: "095342345",
- *      picture: "https://mfi.com/assets/account_5736573.png",
- *      gender: "SELECT",
- *      multi_branch: false,
- *      default_branch: "556e1174a8952c9521286a60",
- *      access_branches: [],
- *      roles: [556e1174a8952c9521286a60],
- *      ...
- *    }
- *    }]
- *  }
+      "total_docs_count": 1,
+      "current_page": 1,
+      "docs": [
+         {
+            "_id": "5def0f20a7c38e11f72d8b07",
+            "realm": "user",
+            "role": "Junior_Officer",
+            "status": "active",
+            "archived": false,    
+            "username": "hassen@test",
+            "created_by": "super@bidir.com",
+            "date_created": "2019-12-10T03:21:04.999Z",
+            "last_modified": "2019-12-10T03:21:05.018Z",
+            "last_login": "2019-12-10T03:21:04.999Z",
+            "account": {
+               "_id": "5def0f21a7c38e5a2d2d8b08"
+               ...
+            }
+         },
+         {
+            ...
+         }           
+      ]
+   }
  */
 router.get('/search', acl(['*']), userController.search);
 
@@ -204,10 +274,7 @@ router.put('/:id/passwords', acl(['*']), userController.updatePassword);
  * @apiGroup User 
  *
  * @apiDescription Resets a User's Password with the given id to a a default password (which is pass2acat)
- *
- * @apiParam {String} old_password Old Password
- * @apiParam {String} new_password New Password
- *
+ * 
  *
  * @apiSuccess {String} message Message
  *
@@ -220,49 +287,47 @@ router.put('/:id/reset', acl(['*']), userController.resetPassword);
 
 
 /**
- * @api {get} /users/:id Get User User
+ * @api {get} /users/:id Get User
  * @apiVersion 1.0.0
  * @apiName Get
  * @apiGroup User
  *
- * @apiDescription Get a user user with the given id
+ * @apiDescription Get a user with the given id
  *
  * @apiSuccess {String} _id user id
- * @apiSuccess {Object} account Account Data
+ * @apiSuccess {String} username Username
+ * @apiSuccess {Object} account Account detail Data
+ * @apiSuccess {Boolean} status active/suspended
  * @apiSuccess {String} role User Role
  * @apiSuccess {String} realm User Realm
  * @apiSuccess {String} last_login Last Login Time Stamp
  *
  * @apiSuccessExample Response Example:
  *  {
- *    _id : "556e1174a8952c9521286a60"
- *    username: "mary.jane@gmail.com",
- *    last_login: '2017-03-16T10:50:52.305Z',
- *    role: "loan_officer",
- *    realm: "user",
- *    account: {
- *      _id : "556e1174a8952c9521286a60",
- *      user : "556e1174a8952c9521286a60",
- *    	first_name: "Mary",
- *    	last_name: "Jane",
- *    	email: "mary.jane@gmail.com",
- *    	phone: "095342345",
- *      picture: "https://mfi.com/assets/account_5736573.png",
- *      gender: "SELECT",
- *      multi_branch: false,
- *      default_branch: "556e1174a8952c9521286a60",
- *      access_branches: [],
- *      roles: [556e1174a8952c9521286a60],
- *      ...
- *    }
- *  }
+      "_id": "5def0f20a7c38e11f72d8b07",
+      "realm": "user",
+      "role": "Junior_Officer",
+      "status": "active",
+      "archived": false,    
+      "username": "hassen@test",
+      "created_by": "super@bidir.com",
+      "date_created": "2019-12-10T03:21:04.999Z",
+      "last_modified": "2019-12-10T03:21:05.018Z",
+      "last_login": "2019-12-10T03:21:04.999Z",
+      "account": {
+         "_id": "5def0f21a7c38e5a2d2d8b08"
+         ...
+      }
+   }     
+     
+ *  
  *
  */
 router.get('/:id', acl(['*']), userController.fetchOne);
 
 
 /**
- * @api {put} /users/:id Update User User
+ * @api {put} /users/:id Update User
  * @apiVersion 1.0.0
  * @apiName Update
  * @apiGroup User 
@@ -273,44 +338,39 @@ router.get('/:id', acl(['*']), userController.fetchOne);
  *
  * @apiParamExample Request example:
  * {
- *    notes: "FB"
+ *    username: "hassenM@test"
  * }
  *
  * @apiSuccess {String} _id user id
- * @apiSuccess {Object} account Account Data
- * @apiSuccess {Boolean} is_active Activeness
+ * @apiSuccess {String} username Username
+ * @apiSuccess {Object} account Account detail Data
+ * @apiSuccess {Boolean} status active/suspended
  * @apiSuccess {String} role User Role
  * @apiSuccess {String} realm User Realm
  * @apiSuccess {String} last_login Last Login Time Stamp
  *
  * @apiSuccessExample Response Example:
  *  {
- *    _id : "556e1174a8952c9521286a60"
- *    username: "mary.jane@gmail.com",
- *    last_login: '2017-03-16T10:50:52.305Z',
- *    role: "loan_officer",
- *    realm: "user",
- *    account: {
- *      _id : "556e1174a8952c9521286a60",
- *      user : "556e1174a8952c9521286a60",
- *    	first_name: "Mary",
- *    	last_name: "Jane",
- *    	email: "mary.jane@gmail.com",
- *    	phone: "095342345",
- *      picture: "https://mfi.com/assets/account_5736573.png",
- *      gender: "SELECT",
- *      multi_branch: false,
- *      default_branch: "556e1174a8952c9521286a60",
- *      access_branches: [],
- *      roles: [556e1174a8952c9521286a60],
- *      ...
- *    }
- *  }
+      "_id": "5def0f20a7c38e11f72d8b07",
+      "realm": "user",
+      "role": "Junior_Officer",
+      "status": "active",
+      "archived": false,    
+      "username": "hassenM@test",
+      "created_by": "super@bidir.com",
+      "date_created": "2019-12-10T03:21:04.999Z",
+      "last_modified": "2019-12-10T03:21:05.018Z",
+      "last_login": "2019-12-10T03:21:04.999Z",
+      "account": {
+         "_id": "5def0f21a7c38e5a2d2d8b08"
+         ...
+      }
+   }     
  */
 router.put('/:id', acl(['*']), userController.update);
 
 /**
- * @api {delete} /users/:id Delete User User
+ * @api {delete} /users/:id Delete User
  * @apiVersion 1.0.0
  * @apiName Delete
  * @apiGroup User 
@@ -319,35 +379,30 @@ router.put('/:id', acl(['*']), userController.update);
  *
  *
  * @apiSuccess {String} _id user id
- * @apiSuccess {Object} account Account Data
- * @apiSuccess {Boolean} is_active Activeness
+ * @apiSuccess {String} username Username
+ * @apiSuccess {Object} account Account detail Data
+ * @apiSuccess {Boolean} status active/suspended
  * @apiSuccess {String} role User Role
  * @apiSuccess {String} realm User Realm
  * @apiSuccess {String} last_login Last Login Time Stamp
  *
  * @apiSuccessExample Response Example:
  *  {
- *    _id : "556e1174a8952c9521286a60"
- *    username: "mary.jane@gmail.com",
- *    last_login: '2017-03-16T10:50:52.305Z',
- *    role: "loan_officer",
- *    realm: "user",
- *    account: {
- *      _id : "556e1174a8952c9521286a60",
- *      user : "556e1174a8952c9521286a60",
- *      first_name: "Mary",
- *      last_name: "Jane",
- *      email: "mary.jane@gmail.com",
- *      phone: "095342345",
- *      picture: "https://mfi.com/assets/account_5736573.png",
- *      gender: "SELECT",
- *      multi_branch: false,
- *      default_branch: "556e1174a8952c9521286a60",
- *      access_branches: [],
- *      roles: [556e1174a8952c9521286a60],
- *      ...
- *    }
- *  }
+      "_id": "5def0f20a7c38e11f72d8b07",
+      "realm": "user",
+      "role": "Junior_Officer",
+      "status": "active",
+      "archived": false,    
+      "username": "hassenM@test",
+      "created_by": "super@bidir.com",
+      "date_created": "2019-12-10T03:21:04.999Z",
+      "last_modified": "2019-12-10T03:21:05.018Z",
+      "last_login": "2019-12-10T03:21:04.999Z",
+      "account": {
+         "_id": "5def0f21a7c38e5a2d2d8b08"
+         ...
+      }
+   }  
  */
 router.delete('/:id', acl(['*']), userController.remove);
 

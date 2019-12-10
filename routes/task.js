@@ -26,25 +26,38 @@ var router  = Router();
  * @apiSuccess {String} entity_ref Account or Branch Ref Id
  * @apiSuccess {String} task Task Description
  * @apiSuccess {Array} task_type Task Type
- * @apiSuccess {String} status Task Status ie pending, cancelled or approved
- * @apiSuccess {String} [user] User Account Assigned task
+ * @apiSuccess {String} status Task Status ie pending, completed
+ * @apiSuccess {String} user User Account for which the task is assigned
  * @apiSuccess {String} created_by Task Creator
+ * @apiSuccess {String} comment Comment
+ * @apiSuccess {String} branch Branch Id
+ * 
  *
  * @apiSuccessExample Response Example:
- *  {
- *    "total_pages": 1,
- *    "total_docs_count": 0,
- *    "docs": [{
- *    	_id : "556e1174a8952c9521286a60",
- *    	task: "Account Approval for new account of John Doe",
- *    	task_type: "account_creation_approval",
- *    	status: "approved",
- *      entity_type: "account",
- *    	entity_ref : "556e1174a8952c9521286a60",
- *      created_by : "556e1174a8952c9521286a60",
- *      account: null
- *    }]
- *  }
+    {
+        "total_pages": 1,
+        "total_docs_count": 4,
+        "current_page": 1,
+        "docs": [
+            {
+                "user": null,
+                "status": "pending",
+                "comment": "",
+                "_id": "5dd613539704b70001458148",
+                "last_modified": "2019-11-21T04:32:19.292Z",
+                "date_created": "2019-11-21T04:32:19.292Z",
+                "task": "Approve Client ACAT of Lemecha Jarso",
+                "task_type": "approve",
+                "entity_ref": "5bbe0882760f80000195968a",
+                "entity_type": "clientACAT",
+                "created_by": "5b926ea8e1d5e7000177b3f5",
+                "branch": "5b926c849fb7f20001f1494c"
+            },
+            {
+                ...
+            }
+        ]
+    }
  */
 router.get('/paginate', acl(['*']), taskController.fetchAllByPagination);
 
@@ -61,20 +74,27 @@ router.get('/paginate', acl(['*']), taskController.fetchAllByPagination);
  * @apiSuccess {String} entity_ref Account or Branch Ref Id
  * @apiSuccess {String} task Task Description
  * @apiSuccess {Array} task_type Task Type
- * @apiSuccess {String} status Task Status ie pending, cancelled or approved
- * @apiSuccess {String} [account] Account Assigned task
+ * @apiSuccess {String} status Task Status ie pending, completed
+ * @apiSuccess {String} user User Account for which the task is assigned
+ * @apiSuccess {String} created_by Task Creator
+ * @apiSuccess {String} comment Comment
+ * @apiSuccess {String} branch Branch Id
  *
  * @apiSuccessExample Response Example:
- *  {
-  *    _id : "556e1174a8952c9521286a60",
- *    task: "Account Approval for new account of John Doe",
- *    task_type: "account_creation_approval",
- *    status: "approved",
- *    entity_type: "account",
- *    entity_ref : "556e1174a8952c9521286a60",
- *    account : "556e1174a8952c9521286a60",
- *      created_by : "556e1174a8952c9521286a60",
- *  }
+    {
+        "user": null,
+        "status": "pending",
+        "comment": "",
+        "_id": "5dd613539704b70001458148",
+        "last_modified": "2019-11-21T04:32:19.292Z",
+        "date_created": "2019-11-21T04:32:19.292Z",
+        "task": "Approve Client ACAT of Lemecha Jarso",
+        "task_type": "approve",
+        "entity_ref": "5bbe0882760f80000195968a",
+        "entity_type": "clientACAT",
+        "created_by": "5b926ea8e1d5e7000177b3f5",
+        "branch": "5b926c849fb7f20001f1494c"
+    }
  *
  */
 router.get('/:id', acl(['*']), taskController.fetchOne);
@@ -88,12 +108,12 @@ router.get('/:id', acl(['*']), taskController.fetchOne);
  *
  * @apiDescription Update a task status with the given id
  *
- * @apiParam {String} status Update Status ie declined, approved or pending
+ * @apiParam {String} status Status value to update
  * @apiParam {String} comment Comment for action
  *
  * @apiParamExample Request example:
  * {
- *    action: "approved",
+ *    status: "completed",
  *    comment: "Comment for task"
  * }
  *
@@ -102,20 +122,27 @@ router.get('/:id', acl(['*']), taskController.fetchOne);
  * @apiSuccess {String} entity_ref Account or Branch Ref Id
  * @apiSuccess {String} task Task Description
  * @apiSuccess {Array} task_type Task Type
- * @apiSuccess {String} status Task Status ie pending, cancelled or approved
- * @apiSuccess {String} [account] Account Assigned task
+ * @apiSuccess {String} status Task Status ie pending, completed
+ * @apiSuccess {String} user User Account for which the task is assigned
+ * @apiSuccess {String} created_by Task Creator
+ * @apiSuccess {String} comment Comment
+ * @apiSuccess {String} branch Branch Id
  *
  * @apiSuccessExample Response Example:
- *  {
- *    	_id : "556e1174a8952c9521286a60",
- *    task: "Account Approval for new account of John Doe",
- *    task_type: "account_creation_approval",
- *    status: "done",
- *    entity_type: "account",
- *    entity_ref : "556e1174a8952c9521286a60",
- *    account : "556e1174a8952c9521286a60",
- *    created_by : "556e1174a8952c9521286a60",
- *  }
+    {
+        "user": null,
+        "status": "completed",
+        "comment": "Comment for task",
+        "_id": "5dd613539704b70001458148",
+        "last_modified": "2019-11-21T04:32:19.292Z",
+        "date_created": "2019-11-21T04:32:19.292Z",
+        "task": "Approve Client ACAT of Lemecha Jarso",
+        "task_type": "approve",
+        "entity_ref": "5bbe0882760f80000195968a",
+        "entity_type": "clientACAT",
+        "created_by": "5b926ea8e1d5e7000177b3f5",
+        "branch": "5b926c849fb7f20001f1494c"
+    }
  */
 router.put('/:id/status', acl(['*']), taskController.updateStatus);
 
